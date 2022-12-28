@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3D graphics engine", "3D graphics engine.vcxproj", "{36B98185-23E6-4DD1-83B8-9B8A97336141}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{36B98185-23E6-4DD1-83B8-9B8A97336141}.Debug|x64.ActiveCfg = Debug|x64
+		{36B98185-23E6-4DD1-83B8-9B8A97336141}.Debug|x64.Build.0 = Debug|x64
+		{36B98185-23E6-4DD1-83B8-9B8A97336141}.Debug|x86.ActiveCfg = Debug|Win32
+		{36B98185-23E6-4DD1-83B8-9B8A97336141}.Debug|x86.Build.0 = Debug|Win32
+		{36B98185-23E6-4DD1-83B8-9B8A97336141}.Release|x64.ActiveCfg = Release|x64
+		{36B98185-23E6-4DD1-83B8-9B8A97336141}.Release|x64.Build.0 = Release|x64
+		{36B98185-23E6-4DD1-83B8-9B8A97336141}.Release|x86.ActiveCfg = Release|Win32
+		{36B98185-23E6-4DD1-83B8-9B8A97336141}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {316F8DB8-E20D-4871-AA74-3549E13E50B9}
+	EndGlobalSection
+EndGlobal
