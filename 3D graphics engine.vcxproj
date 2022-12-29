@@ -148,17 +148,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Display.cpp" />
     <ClCompile Include="CPU File.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="CudaLinkTest.cuh" />
+    <ClInclude Include="LinkFile.cuh" />
     <ClInclude Include="Display.h" />
+    <ClInclude Include="List.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="CudaFileTest.cu" />
+    <CudaCompile Include="CudaFile.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

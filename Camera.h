@@ -16,7 +16,7 @@ public:
 	}
 
 	//X angle functions
-	void increaseX(int incremeant) {
+	void increaseRotationX(int incremeant) {
 		rotatedX += incremeant;
 	}
 
@@ -25,7 +25,7 @@ public:
 	}
 
 	//y angle functions
-	void increaseY(int incremeant) {
+	void increaseRotationY(int incremeant) {
 		rotatedY += incremeant;
 	}
 
@@ -34,7 +34,7 @@ public:
 	}
 
 	//z angle functions
-	void increaseZ(int incremeant) {
+	void increaseRotationZ(int incremeant) {
 		rotatedZ += incremeant;
 	}
 

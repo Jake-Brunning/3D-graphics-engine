@@ -1,16 +1,125 @@
 #include <SDL.h>
 #include <stdio.h>
 #include <iostream>
-#include "CudaLinkTest.cuh";
 
+#include "LinkFile.cuh";
 #include "Camera.h";
 #include "Display.h";
 #include "Vector.h";
+#include "List.h";
 
+//function declarations
+List<Vector> loadDefaultShape(List<Vector> vecstore);
+void addTriangleToVectorStore(List<Vector>& vecStore, Vector* vec1, Vector* vec2, Vector* vec3);
+
+
+//Variable declarations
 Display engineDisplay(500, 500, "3D engine");
 
 int main(int argc, char* args[]) {
-	std::cout << "Hello world" << std::endl;
-	cpuEnterFunction();
-	return 1;
+	List<Vector> vecStore; //The store of vectors
+	vecStore = loadDefaultShape(vecStore); //load the default shape
+
+	Camera camera(0, 0, 0.5, 90);
+
+	//Load default color onto the screen
+	engineDisplay.clearScreen();
+
+	//initilise cuda:
+	cudaFree(0);
+
+	//main game loop:
+	SDL_Event event{}; //event handler
+	const int lengthOfAFrame = 17; //how long a frame should last
+	int frameTime = 0; //how long the last frame lasted
+
+	while (true)
+	{
+		frameTime = SDL_GetTicks();
+
+		//go through user input 
+		switch (event.key.keysym.sym) {
+		//camera movements
+		case SDLK_w:
+			//move Z vectors backwards
+			break;
+		case SDLK_a:
+			//move X vectors right
+			break;
+		case SDLK_d:
+			//move X vectors left
+			break;
+		case SDLK_s:
+			//move Z vectors forwards
+			break;
+		case SDLK_UP:
+			//move Y vectors up
+			break;
+		case SDLK_DOWN:
+			//move Y vectors down
+			break;
+
+		//camera rotations
+		case SDLK_q:
+			//rotate X left
+			camera.increaseRotationX(0.314);
+			break;
+		case SDLK_e:
+			//rotate X right
+			camera.increaseRotationX(-0.314);
+			break;
+		case SDLK_z:
+			//rotate Y left
+			camera.increaseRotationY(-0.314);
+			break;
+		case SDLK_x:
+			//rotate Y right
+			camera.increaseRotationX(0.314);
+			break;
+		case SDLK_r:
+			//rotate Z left
+			camera.increaseRotationZ(-0.314);
+			break;
+		case SDLK_t:
+			//rotate Z right
+			camera.increaseRotationZ(0.314);
+			break;
+		}
+
+		if (event.type == SDL_QUIT) {
+			break;
+		}
+		
+		if (event.type != NULL) { //if an event has happend
+			//draw and project vectors
+		}
+
+		frameTime = SDL_GetTicks() - frameTime;
+		if (frameTime < lengthOfAFrame) {
+			SDL_Delay(frameTime);
+		}
+		SDL_PollEvent(&event);
+	}
+
+	return 10;
+}
+
+
+
+//the first shape to be loaded onto the program
+List<Vector> loadDefaultShape(List<Vector> vecstore) {
+	Vector* vec1 = new Vector(0.5, 0.5, 2);
+	Vector* vec2 = new Vector(0.5, 0.1, 2);
+	Vector* vec3 = new Vector(0.3, 0.1, 2);
+	addTriangleToVectorStore(vecstore, vec1, vec2, vec3);
+	return vecstore;
+}
+
+void addTriangleToVectorStore(List<Vector> &vecStore, Vector* vec1, Vector* vec2, Vector* vec3) {
+	vec1->assignConnectedVectors(vec2, vec3);
+	vec2->assignConnectedVectors(vec3, vec1);
+	vec3->assignConnectedVectors(vec1, vec2);
+	vecStore.add(*vec1);
+	vecStore.add(*vec2);
+	vecStore.add(*vec3);
 }

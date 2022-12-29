@@ -11,7 +11,7 @@ public:
 		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 			std::cout << "SDL could not initialize! SDL error: " << SDL_GetError() << std::endl;
 		}
-		
+
 		window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
 		renderer = SDL_CreateRenderer(window, 0, SDL_WINDOW_SHOWN);
 
@@ -20,6 +20,16 @@ public:
 		SDL_DestroyWindow(window);
 		SDL_DestroyRenderer(renderer);
 		SDL_Quit();
+	}
+
+	void clearScreen(int r = 0, int g = 0, int b = 0) {
+		SDL_SetRenderDrawColor(renderer, r, g, b, 0);
+		SDL_RenderClear(renderer);
+		SDL_RenderPresent(renderer);
+	}
+
+	void draw() {
+		SDL_RenderPresent(renderer);
 	}
 
 	int getHeight() {

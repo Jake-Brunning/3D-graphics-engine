@@ -1,6 +1,6 @@
 #include "cuda_runtime.h";
 #include "device_launch_parameters.h"
-#include "CudaLinkTest.cuh";
+#include "LinkFile.cuh";
 #include <iostream>;
 
 

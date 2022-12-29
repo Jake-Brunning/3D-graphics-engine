@@ -1,7 +1,6 @@
 #pragma once
 #include "cuda_runtime.h";
 #include "device_launch_parameters.h"
-#include "CudaLinkTest.cuh"
 class Vector
 {
 public:
@@ -25,6 +24,11 @@ public:
 		this->b = b;
 	}
 
+	Vector() {
+		//No parameter constructor so list class can make memory space without
+		//needing to initilise any values
+	}
+
 	//assign the connected vectors
 	void assignConnectedVectors(Vector* vec2, Vector* vec3) {
 		this->vec2 = vec2;
@@ -37,19 +41,11 @@ public:
 		y = ((nearClipDistZ / z) * y) + nearClipDistY;
 	}
 
-private:
-	Vector* vec2 = nullptr;
-	Vector* vec3 = nullptr;
-
-	short r = 0;
-	short b = 0;
-	short g = 255;
-
 	//get functions for R G B
 	short getR() {
 		return r;
 	}
-	
+
 	short getB() {
 		return b;
 	}
@@ -70,5 +66,14 @@ private:
 	void setG(short g) {
 		this->g = g;
 	}
+
+private:
+	Vector* vec2 = nullptr;
+	Vector* vec3 = nullptr;
+
+	short r = 0;
+	short b = 0;
+	short g = 255;
+
 };
 
