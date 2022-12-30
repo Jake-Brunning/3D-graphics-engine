@@ -1,7 +1,8 @@
 #pragma once
 #pragma once
 #include <iostream>;
-
+#include "cuda_runtime.h";
+#include "device_launch_parameters.h"
 template<typename type>
 class List
 {
@@ -34,6 +35,17 @@ public:
 
 	int count() {
 		return NumOfElements;
+	}
+
+	//convert to array
+	type* changeToArray() {
+		return data;
+	}
+
+	//convert to list
+	void changetolist(type* data) {
+		this->data = data;
+		int NumOfElements = sizeof(*data) / sizeof(type);
 	}
 
 private:

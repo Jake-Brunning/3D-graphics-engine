@@ -13,6 +13,7 @@ public:
 		this->x = x;
 		this->y = y;
 		this->z = z;
+		
 	}
 
 	Vector(double x, double y, double z, short r, short g, short b) {
@@ -27,12 +28,6 @@ public:
 	Vector() {
 		//No parameter constructor so list class can make memory space without
 		//needing to initilise any values
-	}
-
-	//assign the connected vectors
-	void assignConnectedVectors(Vector* vec2, Vector* vec3) {
-		this->vec2 = vec2;
-		this->vec3 = vec3;
 	}
 
 	//GPU project function
@@ -68,9 +63,6 @@ public:
 	}
 
 private:
-	Vector* vec2 = nullptr;
-	Vector* vec3 = nullptr;
-
 	short r = 0;
 	short b = 0;
 	short g = 255;

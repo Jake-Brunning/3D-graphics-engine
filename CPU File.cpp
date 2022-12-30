@@ -14,12 +14,12 @@ void addTriangleToVectorStore(List<Vector>& vecStore, Vector* vec1, Vector* vec2
 
 
 //Variable declarations
-Display engineDisplay(500, 500, "3D engine");
+Display engineDisplay(700, 900, "3D engine");
 
 int main(int argc, char* args[]) {
 	List<Vector> vecStore; //The store of vectors
 	vecStore = loadDefaultShape(vecStore); //load the default shape
-
+	
 	Camera camera(0, 0, 0.5, 90);
 
 	//Load default color onto the screen
@@ -32,6 +32,9 @@ int main(int argc, char* args[]) {
 	SDL_Event event{}; //event handler
 	const int lengthOfAFrame = 17; //how long a frame should last
 	int frameTime = 0; //how long the last frame lasted
+	
+	const double howMuchToMove = 0.2; //how much the camera should move when a user inputs a movement
+	
 
 	while (true)
 	{
@@ -42,21 +45,27 @@ int main(int argc, char* args[]) {
 		//camera movements
 		case SDLK_w:
 			//move Z vectors backwards
+			vecStore.changetolist(setUpMoveVectors(-howMuchToMove, 'z', vecStore.changeToArray(), vecStore.count()));
 			break;
 		case SDLK_a:
 			//move X vectors right
+			vecStore.changetolist(setUpMoveVectors(howMuchToMove, 'x', vecStore.changeToArray(), vecStore.count()));
 			break;
 		case SDLK_d:
 			//move X vectors left
+			vecStore.changetolist(setUpMoveVectors(-howMuchToMove, 'x', vecStore.changeToArray(), vecStore.count()));
 			break;
 		case SDLK_s:
 			//move Z vectors forwards
+			vecStore.changetolist(setUpMoveVectors(howMuchToMove, 'z', vecStore.changeToArray(), vecStore.count()));
 			break;
 		case SDLK_UP:
 			//move Y vectors up
+			vecStore.changetolist(setUpMoveVectors(howMuchToMove, 'y', vecStore.changeToArray(), vecStore.count()));
 			break;
 		case SDLK_DOWN:
 			//move Y vectors down
+			vecStore.changetolist(setUpMoveVectors(-howMuchToMove, 'y', vecStore.changeToArray(), vecStore.count()));
 			break;
 
 		//camera rotations
@@ -116,9 +125,6 @@ List<Vector> loadDefaultShape(List<Vector> vecstore) {
 }
 
 void addTriangleToVectorStore(List<Vector> &vecStore, Vector* vec1, Vector* vec2, Vector* vec3) {
-	vec1->assignConnectedVectors(vec2, vec3);
-	vec2->assignConnectedVectors(vec3, vec1);
-	vec3->assignConnectedVectors(vec1, vec2);
 	vecStore.add(*vec1);
 	vecStore.add(*vec2);
 	vecStore.add(*vec3);
