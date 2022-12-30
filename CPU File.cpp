@@ -7,6 +7,7 @@
 #include "Display.h";
 #include "Vector.h";
 #include "List.h";
+#include "RotationMatrix.h";
 
 //function declarations
 List<Vector> loadDefaultShape(List<Vector> vecstore);
@@ -17,9 +18,11 @@ void addTriangleToVectorStore(List<Vector>& vecStore, Vector* vec1, Vector* vec2
 Display engineDisplay(700, 900, "3D engine");
 
 int main(int argc, char* args[]) {
+
 	List<Vector> vecStore; //The store of vectors
 	vecStore = loadDefaultShape(vecStore); //load the default shape
 	
+	//initilise camera
 	Camera camera(0, 0, 0.5, 90);
 
 	//Load default color onto the screen
@@ -28,13 +31,34 @@ int main(int argc, char* args[]) {
 	//initilise cuda:
 	cudaFree(0);
 
+	//initilise GPU fov values
+	setUpFovValuesForGPU(camera.getFOVX(), engineDisplay.getHeight(), engineDisplay.getWidth());
+
+	//initilise matrixes
+	double xRotationValues[] = { 1,0,0,0,1,1,0,-1,1 };
+	int xRotationSinIndexes[] = { 5,7 };
+	int xRotationCosIndexes[] = { 4,8 };
+	RotationMatrix xMatrix(xRotationValues, xRotationSinIndexes, xRotationCosIndexes);
+
+	double yRotationValues[] = { 1,0,-1,0,1,0,1,0,1 };
+	int yRotationSinIndexes[] = { 2,6 };
+	int yRotationCosIndexes[] = { 0,8 };
+	RotationMatrix yMatrix(yRotationValues, yRotationSinIndexes, yRotationCosIndexes);
+
+	double zRotationValues[] = {1,1,0,-1,1,0,0,0,1};
+	int zRotationSinIndexes[] = { 5,7 };
+	int zRotationCosIndexes[] = { 4,8 };
+	RotationMatrix zMatrix(zRotationValues, zRotationSinIndexes, zRotationCosIndexes);
+
 	//main game loop:
 	SDL_Event event{}; //event handler
 	const int lengthOfAFrame = 17; //how long a frame should last
 	int frameTime = 0; //how long the last frame lasted
 	
 	const double howMuchToMove = 0.2; //how much the camera should move when a user inputs a movement
+	const double howMuchToRotate = 0.314; //how much the camera should rotate when a user inputs a movement
 	
+	bool eventHappened = true; //is true if an event has happened
 
 	while (true)
 	{
@@ -71,27 +95,31 @@ int main(int argc, char* args[]) {
 		//camera rotations
 		case SDLK_q:
 			//rotate X left
-			camera.increaseRotationX(0.314);
+			camera.increaseRotationX(howMuchToRotate);
 			break;
 		case SDLK_e:
 			//rotate X right
-			camera.increaseRotationX(-0.314);
+			camera.increaseRotationX(-howMuchToRotate);
 			break;
 		case SDLK_z:
 			//rotate Y left
-			camera.increaseRotationY(-0.314);
+			camera.increaseRotationY(-howMuchToRotate);
 			break;
 		case SDLK_x:
 			//rotate Y right
-			camera.increaseRotationX(0.314);
+			camera.increaseRotationX(howMuchToRotate);
 			break;
 		case SDLK_r:
 			//rotate Z left
-			camera.increaseRotationZ(-0.314);
+			camera.increaseRotationZ(-howMuchToRotate);
 			break;
 		case SDLK_t:
 			//rotate Z right
-			camera.increaseRotationZ(0.314);
+			camera.increaseRotationZ(howMuchToRotate);
+			break;
+		default:
+			//if no inputs have occured
+			eventHappened = false;
 			break;
 		}
 
@@ -99,8 +127,8 @@ int main(int argc, char* args[]) {
 			break;
 		}
 		
-		if (event.type != NULL) { //if an event has happend
-			//draw and project vectors
+		if (eventHappened) {
+			setUpRotationAndProjection(xMatrix.setUpData(camera.getRotatedX()), yMatrix.setUpData(camera.getRotatedY()), zMatrix.setUpData(camera.getRotatedZ()), vecStore.changeToArray(), vecStore.count());
 		}
 
 		frameTime = SDL_GetTicks() - frameTime;
@@ -108,6 +136,7 @@ int main(int argc, char* args[]) {
 			SDL_Delay(frameTime);
 		}
 		SDL_PollEvent(&event);
+		eventHappened = true;
 	}
 
 	return 10;

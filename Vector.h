@@ -34,6 +34,7 @@ public:
 	__device__ void projectVector(double nearClipDistX, double nearClipDistY, double nearClipDistZ) {
 		x = ((nearClipDistZ / z) * x) + nearClipDistX;
 		y = ((nearClipDistZ / z) * y) + nearClipDistY;
+		projected = true;
 	}
 
 	//get functions for R G B
@@ -66,6 +67,7 @@ private:
 	short r = 0;
 	short b = 0;
 	short g = 255;
+	bool projected = false; //true means the vector has been projected
 
 };
 
