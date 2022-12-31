@@ -32,9 +32,13 @@ public:
 
 	//GPU project function
 	__device__ void projectVector(double nearClipDistX, double nearClipDistY, double nearClipDistZ) {
+		projected = true;
 		x = ((nearClipDistZ / z) * x) + nearClipDistX;
 		y = ((nearClipDistZ / z) * y) + nearClipDistY;
-		projected = true;
+	}
+
+	__device__ bool getProjectVector() {
+		return projected;
 	}
 
 	//get functions for R G B

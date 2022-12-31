@@ -1,17 +1,20 @@
 #pragma once
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 class Camera
 {
 public:
 	//near clip distances functions
-	double getDistanceX() {
+	__host__ __device__ double getDistanceX() {
 		return distanceX; 
 	}
 
-	double getDistanceY() {
+	__host__ __device__ double getDistanceY() {
 		return distanceY;
 	}
 
-	double getDistanceZ() {
+	__host__ __device__ double getDistanceZ() {
 		return distanceZ;
 	}
 
@@ -63,9 +66,9 @@ private:
 	double rotatedZ = 0;
 
 	//near clip distances
-	double distanceX = 0;
-	double distanceY = 0;
-	double distanceZ = 1;
-	double FOVX = 90;
+	double distanceX;
+	double distanceY;
+	double distanceZ;
+	double FOVX;
 };
 

@@ -15,7 +15,7 @@ void addTriangleToVectorStore(List<Vector>& vecStore, Vector* vec1, Vector* vec2
 
 
 //Variable declarations
-Display engineDisplay(700, 900, "3D engine");
+Display engineDisplay(1080, 1920, "3D engine");
 
 int main(int argc, char* args[]) {
 
@@ -23,7 +23,7 @@ int main(int argc, char* args[]) {
 	vecStore = loadDefaultShape(vecStore); //load the default shape
 	
 	//initilise camera
-	Camera camera(0, 0, 0.5, 90);
+	Camera camera(0, 0, 0.5, (3.141592654 / 180) * 110);
 
 	//Load default color onto the screen
 	engineDisplay.clearScreen();
@@ -128,7 +128,13 @@ int main(int argc, char* args[]) {
 		}
 		
 		if (eventHappened) {
-			setUpRotationAndProjection(xMatrix.setUpData(camera.getRotatedX()), yMatrix.setUpData(camera.getRotatedY()), zMatrix.setUpData(camera.getRotatedZ()), vecStore.changeToArray(), vecStore.count());
+			//projected vectors consists of all the vectors, but the ones which need to be projected are projected
+			Vector* projectedVectors = setUpRotationAndProjection(xMatrix.setUpData(camera.getRotatedX()), yMatrix.setUpData(camera.getRotatedY()), zMatrix.setUpData(camera.getRotatedZ()), vecStore.changeToArray(), vecStore.count(), camera);
+			for (int i = 0; i < vecStore.count(); i += 3) {
+				if (projectedVectors[i].getProjectVector() == true) {
+					//draw
+				}
+			}
 		}
 
 		frameTime = SDL_GetTicks() - frameTime;
@@ -146,9 +152,9 @@ int main(int argc, char* args[]) {
 
 //the first shape to be loaded onto the program
 List<Vector> loadDefaultShape(List<Vector> vecstore) {
-	Vector* vec1 = new Vector(0.5, 0.5, 2);
-	Vector* vec2 = new Vector(0.5, 0.1, 2);
-	Vector* vec3 = new Vector(0.3, 0.1, 2);
+	Vector* vec1 = new Vector(2, 2, 1.5);
+	Vector* vec2 = new Vector(2, 1, 1.5);
+	Vector* vec3 = new Vector(1.2, 1, 1.5);
 	addTriangleToVectorStore(vecstore, vec1, vec2, vec3);
 	return vecstore;
 }
