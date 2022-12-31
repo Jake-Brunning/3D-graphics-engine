@@ -46,8 +46,8 @@ int main(int argc, char* args[]) {
 	RotationMatrix yMatrix(yRotationValues, yRotationSinIndexes, yRotationCosIndexes);
 
 	double zRotationValues[] = {1,1,0,-1,1,0,0,0,1};
-	int zRotationSinIndexes[] = { 5,7 };
-	int zRotationCosIndexes[] = { 4,8 };
+	int zRotationSinIndexes[] = { 1,3 };
+	int zRotationCosIndexes[] = { 0,4 };
 	RotationMatrix zMatrix(zRotationValues, zRotationSinIndexes, zRotationCosIndexes);
 
 	//main game loop:
