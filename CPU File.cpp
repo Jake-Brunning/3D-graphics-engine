@@ -12,24 +12,27 @@
 //function declarations
 List<Vector> loadDefaultShape(List<Vector> vecstore);
 void addTriangleToVectorStore(List<Vector>& vecStore, Vector* vec1, Vector* vec2, Vector* vec3);
-
+void drawATriangle(Vector vec1, Vector vec2, Vector vec3);
 
 //Variable declarations
 Display engineDisplay(1080, 1920, "3D engine");
 
 int main(int argc, char* args[]) {
 
-	List<Vector> vecStore; //The store of vectors
+	List<Vector> vecStore; //The store of vectors. Each 3 consecutive vectors form their own triangle.
 	vecStore = loadDefaultShape(vecStore); //load the default shape
-	
+	addTriangleToVectorStore(vecStore, new Vector(2, 3, 5), new Vector(1, 2, 3), new Vector(3, 2, 5));
+
+
 	//initilise camera
-	Camera camera(0, 0, 0.5, (3.141592654 / 180) * 110);
+	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 90);
 
 	//Load default color onto the screen
 	engineDisplay.clearScreen();
 
 	//initilise cuda:
 	cudaFree(0);
+
 
 	//initilise GPU fov values
 	setUpFovValuesForGPU(camera.getFOVX(), engineDisplay.getHeight(), engineDisplay.getWidth());
@@ -55,8 +58,8 @@ int main(int argc, char* args[]) {
 	const int lengthOfAFrame = 17; //how long a frame should last
 	int frameTime = 0; //how long the last frame lasted
 	
-	const double howMuchToMove = 0.2; //how much the camera should move when a user inputs a movement
-	const double howMuchToRotate = 0.314; //how much the camera should rotate when a user inputs a movement
+	const double howMuchToMove = 0.02; //how much the camera should move when a user inputs a movement
+	const double howMuchToRotate = 0.0314; //how much the camera should rotate when a user inputs a movement
 	
 	bool eventHappened = true; //is true if an event has happened
 
@@ -107,7 +110,7 @@ int main(int argc, char* args[]) {
 			break;
 		case SDLK_x:
 			//rotate Y right
-			camera.increaseRotationX(howMuchToRotate);
+			camera.increaseRotationY(howMuchToRotate);
 			break;
 		case SDLK_r:
 			//rotate Z left
@@ -128,13 +131,20 @@ int main(int argc, char* args[]) {
 		}
 		
 		if (eventHappened) {
-			//projected vectors consists of all the vectors, but the ones which need to be projected are projected
+			
+			//projected vectors consists of all vectors. The vectors in the view of the frustrum have been projected; ones which are not have not been projected
 			Vector* projectedVectors = setUpRotationAndProjection(xMatrix.setUpData(camera.getRotatedX()), yMatrix.setUpData(camera.getRotatedY()), zMatrix.setUpData(camera.getRotatedZ()), vecStore.changeToArray(), vecStore.count(), camera);
+			
+			//Because of prievous code in rotate and project, if one vector has been projected all connecting vectors would have also been projected
+			//each 3 consecutive vectors in projectedVectors are connected, so can loop through every 3 vectors and check if it has been projected.
+			//if it has, can pass that vector and each connecting one into a draw function
+			engineDisplay.clearScreen(); //prepare the screen for drawing by getting rid of all current drawing on the sreen
 			for (int i = 0; i < vecStore.count(); i += 3) {
 				if (projectedVectors[i].getProjectVector() == true) {
-					//draw
+					drawATriangle(projectedVectors[i], projectedVectors[i + 1], projectedVectors[i + 2]);
 				}
 			}
+			engineDisplay.draw();
 		}
 
 		frameTime = SDL_GetTicks() - frameTime;
@@ -149,12 +159,20 @@ int main(int argc, char* args[]) {
 }
 
 
+//draw call for a triangle
+void drawATriangle(Vector vec1, Vector vec2, Vector vec3) {
+	engineDisplay.renderLine(vec1.x, vec2.x, vec1.y, vec2.y);
+	engineDisplay.renderLine(vec2.x, vec3.x, vec2.y, vec3.y);
+	engineDisplay.renderLine(vec3.x, vec1.x, vec3.y, vec1.y);
+}
+
+
 
 //the first shape to be loaded onto the program
 List<Vector> loadDefaultShape(List<Vector> vecstore) {
-	Vector* vec1 = new Vector(2, 2, 1.5);
-	Vector* vec2 = new Vector(2, 1, 1.5);
-	Vector* vec3 = new Vector(1.2, 1, 1.5);
+	Vector* vec1 = new Vector(2, 2, 7);
+	Vector* vec2 = new Vector(2, 1, 7);
+	Vector* vec3 = new Vector(1.2, 1, 7);
 	addTriangleToVectorStore(vecstore, vec1, vec2, vec3);
 	return vecstore;
 }

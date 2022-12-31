@@ -50,11 +50,11 @@ __host__ Vector* setUpMoveVectors(double changeInXYZ, char axis, Vector* vectors
 }
 
 __global__ void calculateFovValues(double fovInput, double yPixels, double xPixels) {
-	fovX = fovInput;
-	fovY = fovInput * (yPixels / xPixels);
+	fovX = 1.57;
+	fovY = 1.57;
 
 	//fovX = fovX / 2;
-	//fovY = fovY / 2;
+	//fovY = fovY / 2; 
 }
 
 __host__ void setUpFovValuesForGPU(double fovInput, double yPixels, double xPixels) {
@@ -64,6 +64,9 @@ __host__ void setUpFovValuesForGPU(double fovInput, double yPixels, double xPixe
 template <typename type>
 //this function assumes only valid matrixes are passed into it
 __global__ void matrixMultiply(type* matrix1, type* matrix2, type* returnMatrix, const int matrix2Width, const int matrix2Height) {
+	//each thread will handle one row and one column of the matrix multiplication
+	
+
 	int row = (blockDim.x * blockIdx.x) + threadIdx.x;
 	int col = (blockDim.y * blockIdx.y) + threadIdx.y;
 
@@ -77,7 +80,7 @@ __global__ void matrixMultiply(type* matrix1, type* matrix2, type* returnMatrix,
 }
 
 template<typename type>
-__device__ type modulus(type input) {
+__device__ type modulus(type input) { //makes a negative positive
 	if (input < 0) {
 		return input * -1;
 	}
@@ -126,22 +129,29 @@ __global__ void rotateAndProject(Vector* d_vectors, double* this_rotationMatrix,
 		//perform rotation
 		matrixMultiply<double> <<<blocks, threads >>> (this_rotationMatrix, d_coordsInMatrixForm, d_rotated, this_widthOfCoords, this_heightOfCoords);
 		cudaDeviceSynchronize(); //stops code from continuing to execute until all vectors have been rotated
+
+		//assign rotated x y z to vectors x y z
 		d_vectors[i].x = d_rotated[0];
 		d_vectors[i].y = d_rotated[1];
 		d_vectors[i].z = d_rotated[2];
 
+		//project vector if in view frustrum
 		if (checkIfInViewFrustrum(d_vectors[i], camera.getDistanceZ())) {
 			d_vectors[i].projectVector(camera.getDistanceX(), camera.getDistanceY(), camera.getDistanceZ());
 		}
-		__syncthreads();
+
+		__syncthreads(); //syncthreads needed so vectors dont get projected twice.
+
 		short numOfVector = i % 3;
 		if (d_vectors[i].getProjectVector() == true) {
 			//project connected vectors
 
-			//each 3 consecutive vectors in d_vectors are a triangle
-			//so this would get what vectors it needs to project
 			short numOfVector = i % 3;
 
+			//keep in mind each 3 consecutive vectors in d_vectors is a triangle
+			//for loop will always start on a multiple of 3 and end before one. e.g:
+			// 0,1,2 or 33,34,35 or 6,7,8.
+			//so only connectd triangle to a projected vector is projected
 			for (int x = i - numOfVector; x < i + 3; x++) {
 				if (d_vectors[x].getProjectVector() == false) {
 					d_vectors[x].projectVector(camera.getDistanceX(), camera.getDistanceY(), camera.getDistanceZ());
@@ -201,12 +211,16 @@ __host__ Vector* setUpRotationAndProjection(double h_xRotation[9], double h_yRot
 
 	cudaMemcpy(d_vectors, h_vectors, sizeof(Vector) * N, cudaMemcpyHostToDevice);
 
-	const int numberOfThreads = 32;
-	const int numberOfBlocks = (N / numberOfThreads) + 1;
+	const int numberOfThreads = 32; //arbituary value for number of threads, tbh this could be increased to 64,128 or 512 for faster processing
+	const int numberOfBlocks = (N / numberOfThreads) + 1; //if more threads needed than can fit in a block, add another block
 
 	rotateAndProject << <numberOfBlocks, numberOfThreads >> > (d_vectors, d_XYZoutput, h_width, N, camera);
-	Vector* h_output = new Vector[N];
+
+	Vector* h_output = new Vector[N]; //the output of rotate and projecet (all vectors, except vectors in view of frustrum will be projected)
 	cudaMemcpy(h_output, d_vectors, sizeof(Vector) * N, cudaMemcpyDeviceToHost);
+
+	cudaFree(d_vectors);
+	cudaFree(d_XYZoutput);
 
 	return h_output;
 }
