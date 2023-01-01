@@ -21,12 +21,12 @@ int main(int argc, char* args[]) {
 
 	List<Vector> vecStore; //The store of vectors. Each 3 consecutive vectors form their own triangle.
 	vecStore = loadDefaultShape(vecStore); //load the default shape
-	addTriangleToVectorStore(vecStore, new Vector(2, 3, 5), new Vector(1, 2, 3), new Vector(3, 2, 5));
+	//addTriangleToVectorStore(vecStore, new Vector(2, 3, 5), new Vector(1, 2, 3), new Vector(3, 2, 5));
 
 
 	//initilise camera
-	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 90);
-
+	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 120);
+	 
 	//Load default color onto the screen
 	engineDisplay.clearScreen();
 
@@ -98,11 +98,11 @@ int main(int argc, char* args[]) {
 		//camera rotations
 		case SDLK_q:
 			//rotate X left
-			camera.increaseRotationX(howMuchToRotate);
+			camera.increaseRotationX(-howMuchToRotate);
 			break;
 		case SDLK_e:
 			//rotate X right
-			camera.increaseRotationX(-howMuchToRotate);
+			camera.increaseRotationX(howMuchToRotate);
 			break;
 		case SDLK_z:
 			//rotate Y left
@@ -133,6 +133,7 @@ int main(int argc, char* args[]) {
 		if (eventHappened) {
 			
 			//projected vectors consists of all vectors. The vectors in the view of the frustrum have been projected; ones which are not have not been projected
+			//This CREATES A COPY of vecstore
 			Vector* projectedVectors = setUpRotationAndProjection(xMatrix.setUpData(camera.getRotatedX()), yMatrix.setUpData(camera.getRotatedY()), zMatrix.setUpData(camera.getRotatedZ()), vecStore.changeToArray(), vecStore.count(), camera);
 			
 			//Because of prievous code in rotate and project, if one vector has been projected all connecting vectors would have also been projected

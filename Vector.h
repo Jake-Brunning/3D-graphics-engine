@@ -38,6 +38,9 @@ public:
 			y = nearClipDistY;
 			return;
 		}
+		else if (z < 0) {
+			z = z * -1;
+		}
 
 		x = ((nearClipDistZ / z) * x) + nearClipDistX;
 		y = ((nearClipDistZ / z) * y) + nearClipDistY;

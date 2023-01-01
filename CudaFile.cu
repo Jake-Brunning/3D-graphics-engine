@@ -50,11 +50,13 @@ __host__ Vector* setUpMoveVectors(double changeInXYZ, char axis, Vector* vectors
 }
 
 __global__ void calculateFovValues(double fovInput, double yPixels, double xPixels) {
-	fovX = 1.57;
-	fovY = 1.57;
+	fovX = fovInput;
+	fovY = fovInput * (yPixels / xPixels);
 
-	//fovX = fovX / 2;
-	//fovY = fovY / 2; 
+	fovX = fovX / 2;
+	fovY = fovY / 2; 
+
+
 }
 
 __host__ void setUpFovValuesForGPU(double fovInput, double yPixels, double xPixels) {
@@ -96,8 +98,8 @@ __device__ bool checkIfInViewFrustrum(Vector vec, double zDistFromNearClip) {
 	vec.y = modulus<double>(vec.y);
 	vec.x = modulus<double>(vec.x);
 	
-	double xAngle = atan(vec.z / vec.x); //Get angle which is formed with the axis
-	double yAngle = atan(vec.z / vec.y);
+	double xAngle = atan(vec.x / vec.z); //Get angle which is formed with the axis
+	double yAngle = atan(vec.y / vec.z);
 
 	if (xAngle > fovX || yAngle > fovY) {
 		return false;
@@ -134,6 +136,10 @@ __global__ void rotateAndProject(Vector* d_vectors, double* this_rotationMatrix,
 		d_vectors[i].x = d_rotated[0];
 		d_vectors[i].y = d_rotated[1];
 		d_vectors[i].z = d_rotated[2];
+
+		//free memory space
+		cudaFree(d_coordsInMatrixForm);
+		cudaFree(d_rotated);
 
 		//project vector if in view frustrum
 		if (checkIfInViewFrustrum(d_vectors[i], camera.getDistanceZ())) {

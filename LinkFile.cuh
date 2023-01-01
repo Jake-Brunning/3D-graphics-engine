@@ -5,4 +5,4 @@
 
 extern Vector* setUpMoveVectors(double changeInXYZ, char axis, Vector* vectors, int N);
 extern Vector* setUpRotationAndProjection(double xRotation[9], double yRotation[9], double zRotation[9], Vector* h_vectors, int N, const Camera camera);
-extern void setUpFovValuesForGPU(double fovInput, double yPixels, double xPixels);
+extern void setUpFovValuesForGPU(double zDistFromNearClip, double yPixels, double xPixels);
