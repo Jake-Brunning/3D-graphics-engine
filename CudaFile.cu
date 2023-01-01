@@ -51,12 +51,7 @@ __host__ Vector* setUpMoveVectors(double changeInXYZ, char axis, Vector* vectors
 
 __global__ void calculateFovValues(double fovInput, double yPixels, double xPixels) {
 	fovX = fovInput;
-	fovY = fovInput * (yPixels / xPixels);
-
-	fovX = fovX / 2;
-	fovY = fovY / 2; 
-
-
+	fovY = fovInput;
 }
 
 __host__ void setUpFovValuesForGPU(double fovInput, double yPixels, double xPixels) {
