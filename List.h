@@ -1,10 +1,10 @@
-#pragma once
+ #pragma once
 #pragma once
 #include <iostream>;
 #include "cuda_runtime.h";
 #include "device_launch_parameters.h"
 template<typename type>
-class List
+class List //List class to be used on the CPU
 {
 public:
 

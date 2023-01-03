@@ -17,6 +17,9 @@ public:
 	}
 
 	double* setUpData(double theta, int N = 9) { //theta is an angle in radians
+		//this function changes the 1s and 0s saved where sin and cos should be located
+		//to sin(theta) and cos(theta)
+		//and copys that array to the return
 
 		double* arrToReturn = copyArray<double>(N);
 
@@ -33,7 +36,12 @@ public:
 
 
 private:
-	double data[9];
+	double data[9]; //It would make alot more sense if data was a 2d array (so it would look more like a matrix)
+	//however, using 2d arrays with the gpu causes alot of issues
+	//mainly with allocating memory, and then copying the memory from CPU to GPU and GPU to CPU, to the point where
+	//an employee from NVIDA who worked on the cuda framework suggested to completly avoid 2d arrays if possible
+
+
 	const int row = 3; //rows of data 2d array
 	const int column = 3; ///columns of data 2d array
 	int indexesWhereCosIs[2];
@@ -48,7 +56,6 @@ private:
 		}
 
 		return returnArr;
-
 	}
 };
 

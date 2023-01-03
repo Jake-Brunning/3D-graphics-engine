@@ -13,9 +13,15 @@
 List<Vector> loadDefaultShape(List<Vector> vecstore);
 void addTriangleToVectorStore(List<Vector>& vecStore, Vector* vec1, Vector* vec2, Vector* vec3);
 void drawATriangle(Vector vec1, Vector vec2, Vector vec3);
+void initiliseUIWindow();
+RotationMatrix initiliseXRotation();
+RotationMatrix initiliseYRotation();
+RotationMatrix initiliseZRotation();
 
 //Variable declarations
-Display engineDisplay(1080, 1920, "3D engine");
+EngineDisplay engineDisplay(1080, 1920, "3D engine");
+UIDisplay uiDisplay(540, 960, "UI display");
+
 
 int main(int argc, char* args[]) {
 
@@ -33,25 +39,13 @@ int main(int argc, char* args[]) {
 	//initilise cuda:
 	cudaFree(0);
 
-
 	//initilise GPU fov values
 	setUpFovValuesForGPU(camera.getFOVX(), engineDisplay.getHeight(), engineDisplay.getWidth());
 
 	//initilise matrixes
-	double xRotationValues[] = { 1,0,0,0,1,1,0,-1,1 };
-	int xRotationSinIndexes[] = { 5,7 };
-	int xRotationCosIndexes[] = { 4,8 };
-	RotationMatrix xMatrix(xRotationValues, xRotationSinIndexes, xRotationCosIndexes);
-
-	double yRotationValues[] = { 1,0,-1,0,1,0,1,0,1 };
-	int yRotationSinIndexes[] = { 2,6 };
-	int yRotationCosIndexes[] = { 0,8 };
-	RotationMatrix yMatrix(yRotationValues, yRotationSinIndexes, yRotationCosIndexes);
-
-	double zRotationValues[] = {1,1,0,-1,1,0,0,0,1};
-	int zRotationSinIndexes[] = { 1,3 };
-	int zRotationCosIndexes[] = { 0,4 };
-	RotationMatrix zMatrix(zRotationValues, zRotationSinIndexes, zRotationCosIndexes);
+	RotationMatrix xMatrix = initiliseXRotation();
+	RotationMatrix yMatrix = initiliseXRotation(); 
+	RotationMatrix zMatrix = initiliseZRotation();
 
 	//main game loop:
 	SDL_Event event{}; //event handler
@@ -126,15 +120,16 @@ int main(int argc, char* args[]) {
 			break;
 		}
 
-		if (event.type == SDL_QUIT) {
+		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE){ //handles closing of the windows
 			break;
 		}
 		
 		if (eventHappened) {
-			
 			//projected vectors consists of all vectors. The vectors in the view of the frustrum have been projected; ones which are not have not been projected
 			//This CREATES A COPY of vecstore
 			Vector* projectedVectors = setUpRotationAndProjection(xMatrix.setUpData(camera.getRotatedX()), yMatrix.setUpData(camera.getRotatedY()), zMatrix.setUpData(camera.getRotatedZ()), vecStore.changeToArray(), vecStore.count(), camera);
+				
+			//Pixel* triOutlines = FindTriangleOutlines(projectedVectors, vecStore.count(), engineDisplay.getMaxX(), engineDisplay.getMaxY(), engineDisplay.getRangeX(), engineDisplay.getRangeY(), engineDisplay.getWidth(), engineDisplay.getHeight());
 			
 			//Because of prievous code in rotate and project, if one vector has been projected all connecting vectors would have also been projected
 			//each 3 consecutive vectors in projectedVectors are connected, so can loop through every 3 vectors and check if it has been projected.
@@ -145,7 +140,8 @@ int main(int argc, char* args[]) {
 					drawATriangle(projectedVectors[i], projectedVectors[i + 1], projectedVectors[i + 2]);
 				}
 			}
-			engineDisplay.draw();
+
+			engineDisplay.draw(); //draw the current scene
 		}
 
 		frameTime = SDL_GetTicks() - frameTime;
@@ -171,7 +167,7 @@ void drawATriangle(Vector vec1, Vector vec2, Vector vec3) {
 
 //the first shape to be loaded onto the program
 List<Vector> loadDefaultShape(List<Vector> vecstore) {
-	Vector* vec1 = new Vector(2, 2, 7);
+	Vector* vec1 = new Vector(1.5, 2, 7);
 	Vector* vec2 = new Vector(2, 1, 7);
 	Vector* vec3 = new Vector(1.2, 1, 7);
 	addTriangleToVectorStore(vecstore, vec1, vec2, vec3);
@@ -182,4 +178,32 @@ void addTriangleToVectorStore(List<Vector> &vecStore, Vector* vec1, Vector* vec2
 	vecStore.add(*vec1);
 	vecStore.add(*vec2);
 	vecStore.add(*vec3);
+}
+
+
+RotationMatrix initiliseXRotation() {
+	double xRotationValues[] = { 1,0,0,0,1,1,0,-1,1 };
+	int xRotationSinIndexes[] = { 5,7 };
+	int xRotationCosIndexes[] = { 4,8 };
+	return RotationMatrix(xRotationValues, xRotationSinIndexes, xRotationCosIndexes);
+
+}
+
+RotationMatrix initiliseYRotation() {
+	double yRotationValues[] = { 1,0,-1,0,1,0,1,0,1 };
+	int yRotationSinIndexes[] = { 2,6 };
+	int yRotationCosIndexes[] = { 0,8 };
+	return RotationMatrix(yRotationValues, yRotationSinIndexes, yRotationCosIndexes);
+}
+
+RotationMatrix initiliseZRotation() {
+	double zRotationValues[] = { 1,1,0,-1,1,0,0,0,1 };
+	int zRotationSinIndexes[] = { 1,3 };
+	int zRotationCosIndexes[] = { 0,4 };
+	return RotationMatrix(zRotationValues, zRotationSinIndexes, zRotationCosIndexes);
+
+}
+
+void initiliseUIWindow() {
+	const std::string fontFilePath;
 }

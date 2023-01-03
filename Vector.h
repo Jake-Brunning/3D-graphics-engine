@@ -52,15 +52,15 @@ public:
 	}
 
 	//get functions for R G B
-	short getR() {
+	__device__ __host__ short getR() {
 		return r;
 	}
 
-	short getB() {
+	__device__ __host__ short getB() {
 		return b;
 	}
 
-	short getG() {
+	__device__ __host__ short getG() {
 		return g;
 	}
 

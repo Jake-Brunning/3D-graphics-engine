@@ -6,6 +6,7 @@
 #include "List.h"
 #include "LinkFile.cuh"
 #include "Camera.h"
+#include "Pixel.h"
 
 __device__ double fovX; //The angle of the camera to the rightmost view
 __device__ double fovY; //The angle of the camera to the upmost view
@@ -226,3 +227,126 @@ __host__ Vector* setUpRotationAndProjection(double h_xRotation[9], double h_yRot
 	return h_output;
 }
 
+__global__ void findTriangleOutlines(Vector* d_vectors, Pixel* d_pixel, const int N, const double maxX, const double maxY, const double rangeX, const double rangeY, const double width, const double height) {
+	int i = (blockDim.x * blockIdx.x) + threadIdx.x;
+
+	if (i < N && d_vectors[i].getProjectVector() == true) {
+
+		//get a vector + its connecting vector
+		Vector vec1 = d_vectors[i];
+		Vector vec2 = d_vectors[i + 1];
+		if (i % 3 == 2) {
+			vec2 = d_vectors[i - 3]; 
+		}
+
+		//the following 2 lines of code is already in the display class
+		//although I would love to just call that function, its not saved on the gpu
+		//making memory space for display is not a good idea; as it has SDL classes and functions
+		vec1.x = ((vec1.x + maxX) / rangeX) * width;
+		vec1.y = ((vec1.y + maxY) / rangeY) * height;
+		vec2.x = ((vec2.x + maxX) / rangeX) * width;
+		vec2.y = ((vec2.y + maxY) / rangeY) * height;
+
+		//find line equation
+		double m = (vec2.y - vec1.y) / (vec2.x - vec1.x);
+		double c = vec1.y - (m * vec1.x);
+
+		d_pixel[i].setValues(1, c, vec1.getB(), m, true);
+
+		//find pixels which are outlined
+		int x;
+		double y;
+		double pastY;
+		int xBound;
+		int yBound;
+		double z;
+		if (vec1.x < vec2.x) {
+			int x = (int)vec1.x;
+			double y = vec1.y;
+			double pastY = vec1.y;
+			xBound = (int)vec2.x;
+			yBound = (int)vec2.y;
+			z = vec1.z;
+		}
+		else {
+			int x = (int)vec2.x;
+			double y = vec2.y;
+			double pastY = vec2.y;
+			xBound = (int)vec1.x;
+			yBound = (int)vec1.y;
+			z = vec2.z;
+		}
+		
+
+		//PROBLEM: 
+
+		while ((int)x != xBound || (int)y != yBound) {
+			break; //afdfdffkjfdjasdfjl;kfdjlk;adjflkadfkjjlkfdsjklafsedkjlfsddsaf;faffksdjkfdsfd;kfkjasfkafsdkasfdl;j
+			x++;
+			y = (m * x) + c;
+			round(y);
+			d_pixel[(int)y * (int)height + x].setValues(vec1.getR(), vec1.getG(), vec1.getB(), z, true);
+			if (modulus<double>(pastY - y) > 1) {
+				for (int j = pastY; j < (int)y; j++) {
+					//outlines.add[x - 1, j];
+					d_pixel[(int)j * (int)height + (x - 1)].setValues(vec1.getR(), vec1.getG(), vec1.getB(), z, true);
+				}
+			}
+		}
+		__syncthreads();
+	}
+}
+
+//rasterisation, to be called from cpu file
+__host__ Pixel* FindTriangleOutlines(Vector* h_vectors, const int N, const double maxX, const double maxY, const double rangeX, const double rangeY, const double width, const double height) {
+	//h_vectors comprises of both projected and unprojected vectors
+	//every 3 consecutive vectors in h_vectors is a triangle
+
+	/**
+		The amount of triangle outlines will vary each call to FindTriangleOutlines
+		So it would make sense to use a dynamic data structure to store the triangle outlines
+		After some research making a dynamic data structure for the GPU which can then transfer it's data across to the CPU could be a project itself
+
+		To get around this problem, we will allocate memory space for each pixel on screen as an array
+		When an outline is found, its saved into the array. If 50, 200 = red then array position [50,200] = red
+		This 2d array of sorts will be represented in vector notation to avoid the errors which come with 2d arrays on the GPU
+
+	*/
+
+	Vector* d_vectors; //vectors on the device
+ 	Pixel* d_pixel; //stores data on every single pixel
+	//array goes rightwards first, so across the width then one down
+
+	const size_t sizeofVectors = sizeof(Vector) * N;
+	const size_t sizeOfPixels = sizeof(Pixel) * width * height; 
+	
+	const int numberOfThreads = 128;
+	const int numberOfBlocks = (N / numberOfThreads) + 1;
+
+	cudaError error;
+
+	error = cudaMalloc(&d_vectors, sizeofVectors);
+	error = cudaMalloc(&d_pixel, sizeOfPixels);
+
+	error = cudaMemcpy(d_vectors, h_vectors, sizeofVectors, cudaMemcpyHostToDevice);
+
+	//findTriangleOutlines << <numberOfBlocks, numberOfThreads >> > (d_vectors, d_pixel, N, maxX, maxY, rangeX, rangeY, width, height);
+
+	Pixel* h_pixel = new Pixel[height * width];
+	error = cudaMemcpy(h_pixel, d_pixel, sizeOfPixels, cudaMemcpyDeviceToHost);
+
+	int amountFilledIn = 0;
+
+	for (int i = 0; i < width * height; i++) {
+		if (h_pixel[i].isAnOutline() == true) {
+			amountFilledIn++;
+		}
+		
+	}
+
+	cudaFree(d_vectors);
+	cudaFree(d_pixel);
+
+	return h_pixel;
+
+}

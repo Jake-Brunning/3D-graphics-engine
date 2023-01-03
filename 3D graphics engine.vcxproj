@@ -72,12 +72,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\skyla\source\repos\C++ projects\lib\SDL2\SDL2-2.0.22\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\skyla\source\repos\C++ projects\lib\SDL2\SDL2-2.0.22\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\skyla\source\repos\C++ projects\lib\SDL2\SDL2-2.0.22\include;C:\Users\skyla\source\repos\C++ projects\lib\SDL2_ttf-2.20.1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\skyla\source\repos\C++ projects\lib\SDL2_ttf-2.20.1\lib\x64;C:\Users\skyla\source\repos\C++ projects\lib\SDL2\SDL2-2.0.22\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\skyla\source\repos\C++ projects\lib\SDL2\SDL2-2.0.22\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\skyla\source\repos\C++ projects\lib\SDL2\SDL2-2.0.22\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\skyla\source\repos\C++ projects\lib\SDL2\SDL2-2.0.22\include;C:\Users\skyla\source\repos\C++ projects\lib\SDL2_ttf-2.20.1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\skyla\source\repos\C++ projects\lib\SDL2_ttf-2.20.1\lib\x64;C:\Users\skyla\source\repos\C++ projects\lib\SDL2\SDL2-2.0.22\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -90,7 +90,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;cudart.lib;cudart_static.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(CudaToolkitLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
@@ -125,7 +125,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;cudart.lib;cudart_static.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(CudaToolkitLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
@@ -157,6 +157,7 @@
     <ClInclude Include="LinkFile.cuh" />
     <ClInclude Include="Display.h" />
     <ClInclude Include="List.h" />
+    <ClInclude Include="Pixel.h" />
     <ClInclude Include="RotationMatrix.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
