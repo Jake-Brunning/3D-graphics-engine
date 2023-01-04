@@ -108,7 +108,7 @@ __global__ void rotateAndProject(Vector* d_vectors, double* this_rotationMatrix,
 	if (i < N) {
 		//set up rotation call
 		const int this_widthOfCoords = 1;
-		const int this_heightOfCoords = 3;
+		const int this_heightOfCoords = 3; 
 		const int amountOfCoords = this_widthOfCoords * this_heightOfCoords;
 		const dim3 blocks(1, 1);
 		const dim3 threads(3, 1);
@@ -153,7 +153,7 @@ __global__ void rotateAndProject(Vector* d_vectors, double* this_rotationMatrix,
 			//for loop will always start on a multiple of 3 and end before one. e.g:
 			// 0,1,2 or 33,34,35 or 6,7,8.
 			//so only connectd triangle to a projected vector is projected
-			for (int x = i - numOfVector; x < i + 3; x++) {
+			for (int x = i - numOfVector; x < i + numOfVector; x++) {
 				if (d_vectors[x].getProjectVector() == false) {
 					d_vectors[x].projectVector(camera.getDistanceX(), camera.getDistanceY(), camera.getDistanceZ());
 				}

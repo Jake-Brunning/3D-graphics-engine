@@ -35,10 +35,10 @@ int main(int argc, char* args[]) {
 
 	//adding a cube onto the screen
 	int startOfcube = 0; //the start of the cube coordinates
-	addTriangleToVectorStore(vecStore, new Vector(startOfcube, startOfcube, startOfcube), new Vector(startOfcube, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube)); //0,0,0 - 0,0,1 - 1,0,0
-	addTriangleToVectorStore(vecStore, new Vector(startOfcube, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube), new Vector(startOfcube + 1, startOfcube, startOfcube + 1)); //0,0,0 - 1,0,0 - 1,0,1
-	addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube), new Vector(startOfcube + 1, startOfcube + 1, startOfcube)); //1,0,1, - 1,0,0 - 1,1,0
-	addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube + 1, startOfcube + 1), new Vector(startOfcube + 1, startOfcube  + 1, startOfcube)); //1,0,1 - 1,1,1 - 1,1,0
+	//addTriangleToVectorStore(vecStore, new Vector(startOfcube, startOfcube, startOfcube), new Vector(startOfcube, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube)); //0,0,0 - 0,0,1 - 1,0,0
+	//addTriangleToVectorStore(vecStore, new Vector(startOfcube, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube), new Vector(startOfcube + 1, startOfcube, startOfcube + 1)); //0,0,0 - 1,0,0 - 1,0,1
+	//addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube), new Vector(startOfcube + 1, startOfcube + 1, startOfcube)); //1,0,1, - 1,0,0 - 1,1,0
+	//addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube + 1, startOfcube + 1), new Vector(startOfcube + 1, startOfcube  + 1, startOfcube)); //1,0,1 - 1,1,1 - 1,1,0
 	
 	//initilise camera
 	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 120);
@@ -59,9 +59,9 @@ int main(int argc, char* args[]) {
 
 	//initilise UI window
 	initiliseUIWindow();
-
 	uiDisplay.renderTextBoxes();
 	uiDisplay.draw();
+
 	//main game loop:
 	SDL_Event event{}; //event handler
 	const int lengthOfAFrame = 17; //how long a frame should last
@@ -170,7 +170,6 @@ int main(int argc, char* args[]) {
 			if (frameTime < lengthOfAFrame) {
 				SDL_Delay(frameTime);
 			}
-			
 		}
 		SDL_PollEvent(&event);
 		eventHappened = true;
@@ -178,7 +177,6 @@ int main(int argc, char* args[]) {
 
 	return 10;
 }
-
 
 //draw call for a triangle
 void drawATriangle(Vector vec1, Vector vec2, Vector vec3) {
@@ -249,6 +247,4 @@ void initiliseUIWindow() {
 	uiDisplay.addTextbox(latoFilePath, "0", "amountOfVectorsOnScreen", size1, startX + WidthOfText + 10, startY + heightOfText, WidthOfText / 7, heightOfText, r, g, b); //Displays the number of vectors on screen
 	uiDisplay.addTextbox(latoFilePath, "Amount Of Vectors In Plane:", "amountOfVectorsInPlaneText", size1, startX, startY + heightOfText * 2, WidthOfText, heightOfText, r, g, b); //displays the text before the number of vectors in the plane
 	uiDisplay.addTextbox(latoFilePath, "0", "amountOfVectorsInPlane", size1, startX + WidthOfText + 10, startY + heightOfText * 2, WidthOfText / 7, heightOfText, r, g, b); //Displays how many vectors are in the plane
-	
-
 }
