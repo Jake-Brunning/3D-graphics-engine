@@ -38,10 +38,6 @@ public:
 			y = nearClipDistY;
 			return;
 		}
-		else if (z < 0) { //if behind 0,0,0 connects to a vector infront of 0,0,0 it will project; without this code a vector has a chance
-			//to flip to the other side of the screen as - * - = +
-			z = z * -1;
-		}
 
 		x = ((nearClipDistZ / z) * x) + nearClipDistX;
 		y = ((nearClipDistZ / z) * y) + nearClipDistY;

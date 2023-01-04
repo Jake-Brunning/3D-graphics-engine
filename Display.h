@@ -93,22 +93,34 @@ private:
 
 class UIDisplay : public BaseDisplay {
 public:
-	using BaseDisplay::BaseDisplay;
+	UIDisplay(int height_, int width_, std::string title) : BaseDisplay(height_, width_, title) {
+		TTF_Init(); // need to initilse the text to texture before using it, so have to make a new construcutor
+		//the base constructor is still called
+	}
 
-	void drawTextboxes() {
+	void renderTextBoxes() {
 		for (int i = 0; i < textBoxes.count(); i++) { //go through each textbox and add its texture to the renderer
 			SDL_RenderCopy(renderer, textBoxes.getIndex(i)->getTexture(), NULL, textBoxes.getIndex(i)->getRect());
 		}
 	}
 
-	void addTextbox(std::string fontFilePath, std::string text, std::string name, int size, int x, int y, int w, int h, SDL_Renderer** renderer, Uint8 r, Uint8 g, Uint8 b) {
-		textBoxes.add(new TextBox(fontFilePath, text, name, size, x, y, w, h, renderer, r, g, b));
+	void changeTextBasedOnName(const std::string newText, const std::string name) { //changes and updates the texture of the target text box
+		for (int i = 0; i < textBoxes.count(); i++) {
+			if (textBoxes.getIndex(i)->getName() == name) {
+				textBoxes.getIndex(i)->changeText(&renderer, newText);
+			}
+			
+		}
+	}
+
+	void addTextbox(std::string fontFilePath, std::string text, std::string name, int size, int x, int y, int w, int h, Uint8 r = 0, Uint8 g = 0, Uint8 b = 0) {//add a textbox 
+		textBoxes.add(new TextBox(fontFilePath, text, name, size, x, y, w, h, &renderer, r, g, b));
 	}
 
 private:
 	class TextBox { //purpose is just to display text. The user cannot interact with instances of this class
 	public:
-		TextBox(std::string fontFilePath, std::string text, std::string name, int size, int x, int y, int w, int h, SDL_Renderer** renderer, Uint8 r = 0, Uint8 g = 0, Uint8 b = 0) {
+		TextBox(std::string fontFilePath, std::string text, std::string name, int size, int x, int y, int w, int h, SDL_Renderer** renderer, Uint8 r, Uint8 g, Uint8 b) {
 			this->name = name;
 
 			rect->x = x;
@@ -122,13 +134,13 @@ private:
 			textStore = TTF_RenderText_Solid(font, text.c_str(), color); //use font to chagne string into displayable text
 			textToDisplay = SDL_CreateTextureFromSurface(*renderer, textStore); //convert text to a texture
 		}
-		~TextBox() {
+		~TextBox() { //deconstructor to free memory space
 			SDL_FreeSurface(textStore);
 			SDL_DestroyTexture(textToDisplay);
 			TTF_CloseFont(font);
 		}
 
-		void changeText(SDL_Renderer** renderer, std::string newText) {
+		void changeText(SDL_Renderer** renderer, const std::string newText) {
 			textStore = TTF_RenderText_Solid(font, newText.c_str(), color); //update the text
 			textToDisplay = SDL_CreateTextureFromSurface(*renderer, textStore); //update the texture
 		}

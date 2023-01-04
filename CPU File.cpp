@@ -29,10 +29,20 @@ int main(int argc, char* args[]) {
 	vecStore = loadDefaultShape(vecStore); //load the default shape
 	//addTriangleToVectorStore(vecStore, new Vector(2, 3, 5), new Vector(1, 2, 3), new Vector(3, 2, 5));
 
+	for (int i = 0; i < 1000; i++) {
+		addTriangleToVectorStore(vecStore, new Vector(i, i, i), new Vector(i + 1, i - 1, i), new Vector(i + 2, i, i));
+	}
 
+	//adding a cube onto the screen
+	int startOfcube = 0; //the start of the cube coordinates
+	addTriangleToVectorStore(vecStore, new Vector(startOfcube, startOfcube, startOfcube), new Vector(startOfcube, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube)); //0,0,0 - 0,0,1 - 1,0,0
+	addTriangleToVectorStore(vecStore, new Vector(startOfcube, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube), new Vector(startOfcube + 1, startOfcube, startOfcube + 1)); //0,0,0 - 1,0,0 - 1,0,1
+	addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube), new Vector(startOfcube + 1, startOfcube + 1, startOfcube)); //1,0,1, - 1,0,0 - 1,1,0
+	addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube + 1, startOfcube + 1), new Vector(startOfcube + 1, startOfcube  + 1, startOfcube)); //1,0,1 - 1,1,1 - 1,1,0
+	
 	//initilise camera
 	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 120);
-	 
+
 	//Load default color onto the screen
 	engineDisplay.clearScreen();
 
@@ -44,15 +54,20 @@ int main(int argc, char* args[]) {
 
 	//initilise matrixes
 	RotationMatrix xMatrix = initiliseXRotation();
-	RotationMatrix yMatrix = initiliseXRotation(); 
+	RotationMatrix yMatrix = initiliseYRotation(); 
 	RotationMatrix zMatrix = initiliseZRotation();
 
+	//initilise UI window
+	initiliseUIWindow();
+
+	uiDisplay.renderTextBoxes();
+	uiDisplay.draw();
 	//main game loop:
 	SDL_Event event{}; //event handler
 	const int lengthOfAFrame = 17; //how long a frame should last
 	int frameTime = 0; //how long the last frame lasted
 	
-	const double howMuchToMove = 0.02; //how much the camera should move when a user inputs a movement
+	const double howMuchToMove = 0.2; //how much the camera should move when a user inputs a movement
 	const double howMuchToRotate = 0.0314; //how much the camera should rotate when a user inputs a movement
 	
 	bool eventHappened = true; //is true if an event has happened
@@ -135,18 +150,27 @@ int main(int argc, char* args[]) {
 			//each 3 consecutive vectors in projectedVectors are connected, so can loop through every 3 vectors and check if it has been projected.
 			//if it has, can pass that vector and each connecting one into a draw function
 			engineDisplay.clearScreen(); //prepare the screen for drawing by getting rid of all current drawing on the sreen
+			int howManyVectorsOnScreen = 0; //the amount of vectors displayed on screen. To be displayed onto the "amountOfVectorsOnScreen" textbox
 			for (int i = 0; i < vecStore.count(); i += 3) {
 				if (projectedVectors[i].getProjectVector() == true) {
 					drawATriangle(projectedVectors[i], projectedVectors[i + 1], projectedVectors[i + 2]);
+					howManyVectorsOnScreen += 3;
 				}
 			}
 
 			engineDisplay.draw(); //draw the current scene
-		}
 
-		frameTime = SDL_GetTicks() - frameTime;
-		if (frameTime < lengthOfAFrame) {
-			SDL_Delay(frameTime);
+			frameTime = SDL_GetTicks() - frameTime;
+			uiDisplay.changeTextBasedOnName(std::to_string(frameTime), "frameTime");
+			uiDisplay.changeTextBasedOnName(std::to_string(vecStore.count()), "amountOfVectorsInPlane");
+			uiDisplay.changeTextBasedOnName(std::to_string(howManyVectorsOnScreen), "amountOfVectorsOnScreen");
+			uiDisplay.clearScreen();
+			uiDisplay.renderTextBoxes();
+			uiDisplay.draw();
+			if (frameTime < lengthOfAFrame) {
+				SDL_Delay(frameTime);
+			}
+			
 		}
 		SDL_PollEvent(&event);
 		eventHappened = true;
@@ -205,5 +229,26 @@ RotationMatrix initiliseZRotation() {
 }
 
 void initiliseUIWindow() {
-	const std::string fontFilePath;
+	const std::string latoFilePath = "Lato-black.ttf";
+	const Uint8 r = 255;
+	const Uint8 g = 255;
+	const Uint8 b = 255;
+	const int size1 = 12; //size of text. Uses normal like ms word sizes.
+
+	const int heightOfText = 100;
+	const int WidthOfText = uiDisplay.getWidth() / 1.75; // The height and width of text to be displayed
+
+	const int startX = 10;
+	const int startY = 10; // (10, 10) is located at the top left of the ui display window
+
+	//The textboxes are identified by there name
+	//If you want to update the text of a textbox, you pass the textbox's name into the update textbox function (along with the new text). This function is stored in UIDisplay
+	uiDisplay.addTextbox(latoFilePath, "Time to Render A Frame:", "frameText", size1, startX, startY, WidthOfText, heightOfText, r, g, b); //Text time to render a frame
+	uiDisplay.addTextbox(latoFilePath, "0", "frameTime", size1, startX + WidthOfText + 10, startY, WidthOfText / 7, heightOfText, r, g, b); //Displays how many ms the last frame was
+	uiDisplay.addTextbox(latoFilePath, "Amount Of Vectors On Screen:", "amountOnScreenText", size1, startX, heightOfText + startY, WidthOfText, heightOfText, r, g, b); //Text Amount Of Vectors on Screen
+	uiDisplay.addTextbox(latoFilePath, "0", "amountOfVectorsOnScreen", size1, startX + WidthOfText + 10, startY + heightOfText, WidthOfText / 7, heightOfText, r, g, b); //Displays the number of vectors on screen
+	uiDisplay.addTextbox(latoFilePath, "Amount Of Vectors In Plane:", "amountOfVectorsInPlaneText", size1, startX, startY + heightOfText * 2, WidthOfText, heightOfText, r, g, b); //displays the text before the number of vectors in the plane
+	uiDisplay.addTextbox(latoFilePath, "0", "amountOfVectorsInPlane", size1, startX + WidthOfText + 10, startY + heightOfText * 2, WidthOfText / 7, heightOfText, r, g, b); //Displays how many vectors are in the plane
+	
+
 }

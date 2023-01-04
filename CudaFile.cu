@@ -38,7 +38,7 @@ __host__ Vector* setUpMoveVectors(double changeInXYZ, char axis, Vector* vectors
 	cudaMalloc(&d_vectors, sizeof(Vector) * N);
 	cudaMemcpy(d_vectors, vectors, sizeof(Vector) * N, cudaMemcpyHostToDevice);
 
-	const int numberOfThreads = 64;
+	const int numberOfThreads = 512;
 	const int numberOfBlocks = (N / numberOfThreads) + 1;
 	
 	MoveVectors << <numberOfBlocks, numberOfThreads >> > (d_vectors, changeInXYZ, axis, N);
@@ -63,8 +63,6 @@ template <typename type>
 //this function assumes only valid matrixes are passed into it
 __global__ void matrixMultiply(type* matrix1, type* matrix2, type* returnMatrix, const int matrix2Width, const int matrix2Height) {
 	//each thread will handle one row and one column of the matrix multiplication
-	
-
 	int row = (blockDim.x * blockIdx.x) + threadIdx.x;
 	int col = (blockDim.y * blockIdx.y) + threadIdx.y;
 
@@ -86,6 +84,7 @@ __device__ type modulus(type input) { //makes a negative positive
 }
 
 __device__ bool checkIfInViewFrustrum(Vector vec, double zDistFromNearClip) {
+	
 	if (zDistFromNearClip > vec.z) { //check if behind the near clip plane
 		return false;
 	}
@@ -112,7 +111,7 @@ __global__ void rotateAndProject(Vector* d_vectors, double* this_rotationMatrix,
 		const int this_heightOfCoords = 3;
 		const int amountOfCoords = this_widthOfCoords * this_heightOfCoords;
 		const dim3 blocks(1, 1);
-		const dim3 threads(3, 3);
+		const dim3 threads(3, 1);
 
 		double* d_rotated; //the rotated vectors
 		double* d_coordsInMatrixForm; //the coordinates of a vector in matrix form
@@ -213,7 +212,7 @@ __host__ Vector* setUpRotationAndProjection(double h_xRotation[9], double h_yRot
 
 	cudaMemcpy(d_vectors, h_vectors, sizeof(Vector) * N, cudaMemcpyHostToDevice);
 
-	const int numberOfThreads = 32; //arbituary value for number of threads, tbh this could be increased to 64,128 or 512 for faster processing
+	const int numberOfThreads = 512; //arbituary value for number of threads, tbh this could be increased to 64,128 or 512 for faster processing
 	const int numberOfBlocks = (N / numberOfThreads) + 1; //if more threads needed than can fit in a block, add another block
 
 	rotateAndProject << <numberOfBlocks, numberOfThreads >> > (d_vectors, d_XYZoutput, h_width, N, camera);
