@@ -28,7 +28,7 @@ int main(int argc, char* args[]) {
 	List<Vector> vecStore; //The store of vectors. Each 3 consecutive vectors form their own triangle.
 	vecStore = loadDefaultShape(vecStore); //load the default shape
 	//addTriangleToVectorStore(vecStore, new Vector(2, 3, 5), new Vector(1, 2, 3), new Vector(3, 2, 5));
-
+	
 	for (int i = 0; i < 1000; i++) {
 		addTriangleToVectorStore(vecStore, new Vector(i, i, i), new Vector(i + 1, i - 1, i), new Vector(i + 2, i, i));
 	}
