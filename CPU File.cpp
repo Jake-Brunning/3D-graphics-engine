@@ -41,7 +41,7 @@ int main(int argc, char* args[]) {
 	//addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube + 1, startOfcube + 1), new Vector(startOfcube + 1, startOfcube  + 1, startOfcube)); //1,0,1 - 1,1,1 - 1,1,0
 	
 	//initilise camera
-	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 120);
+	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 120, 100);
 
 	//Load default color onto the screen
 	engineDisplay.clearScreen();
@@ -184,7 +184,6 @@ void drawATriangle(Vector vec1, Vector vec2, Vector vec3) {
 	engineDisplay.renderLine(vec2.x, vec3.x, vec2.y, vec3.y);
 	engineDisplay.renderLine(vec3.x, vec1.x, vec3.y, vec1.y);
 }
-
 
 
 //the first shape to be loaded onto the program

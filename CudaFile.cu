@@ -83,9 +83,12 @@ __device__ type modulus(type input) { //makes a negative positive
 	return input;
 }
 
-__device__ bool checkIfInViewFrustrum(Vector vec, double zDistFromNearClip) {
+__device__ bool checkIfInViewFrustrum(Vector vec, double zDistFromNearClip, double zFarClipDist) {
 	
 	if (zDistFromNearClip > vec.z) { //check if behind the near clip plane
+		return false;
+	}
+	if (vec.z > zFarClipDist) {
 		return false;
 	}
 
@@ -137,7 +140,7 @@ __global__ void rotateAndProject(Vector* d_vectors, double* this_rotationMatrix,
 		cudaFree(d_rotated);
 
 		//project vector if in view frustrum
-		if (checkIfInViewFrustrum(d_vectors[i], camera.getDistanceZ())) {
+		if (checkIfInViewFrustrum(d_vectors[i], camera.getDistanceZ(), camera.getFarClipDistanceZ())) {
 			d_vectors[i].projectVector(camera.getDistanceX(), camera.getDistanceY(), camera.getDistanceZ());
 		}
 

@@ -18,6 +18,10 @@ public:
 		return distanceZ;
 	}
 
+	__device__ double getFarClipDistanceZ() {
+		return farClipZ;
+	}
+
 	//X angle functions
 	void increaseRotationX(double incremeant) {
 		rotatedX += incremeant;
@@ -51,11 +55,12 @@ public:
 	}
 
 	//constructors
-	Camera(double distanceX, double distanceY, double distanceZ, double FOVX) {
+	Camera(double distanceX, double distanceY, double distanceZ, double FOVX, double farClipZ) {
 		this->distanceX = distanceX;
 		this->distanceY = distanceY;
 		this->distanceZ = distanceZ;
 		this->FOVX = FOVX;
+		this->farClipZ = farClipZ;
 	}
 
 private:
@@ -69,6 +74,7 @@ private:
 	double distanceX;
 	double distanceY;
 	double distanceZ;
+	double farClipZ;
 	double FOVX;
 };
 
