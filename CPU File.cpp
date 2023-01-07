@@ -41,7 +41,7 @@ int main(int argc, char* args[]) {
 	//addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube + 1, startOfcube + 1), new Vector(startOfcube + 1, startOfcube  + 1, startOfcube)); //1,0,1 - 1,1,1 - 1,1,0
 	
 	//initilise camera
-	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 120, 100);
+	Camera camera(0, 0, 0.1, (3.141592654 / 180) * 120, 50);
 
 	//Load default color onto the screen
 	engineDisplay.clearScreen();
@@ -51,6 +51,9 @@ int main(int argc, char* args[]) {
 
 	//initilise GPU fov values
 	setUpFovValuesForGPU(camera.getFOVX(), engineDisplay.getHeight(), engineDisplay.getWidth());
+
+	//initilise GPU cross product values for viewing frustrum (used for clipping)
+	setUpCalculationForCrossProduct(engineDisplay.getMaxX(), engineDisplay.getMaxY(), engineDisplay.getRangeX(), engineDisplay.getRangeY(), camera.getFarClipDistanceZ());
 
 	//initilise matrixes
 	RotationMatrix xMatrix = initiliseXRotation();
@@ -144,8 +147,7 @@ int main(int argc, char* args[]) {
 			//This CREATES A COPY of vecstore
 			Vector* projectedVectors = setUpRotationAndProjection(xMatrix.setUpData(camera.getRotatedX()), yMatrix.setUpData(camera.getRotatedY()), zMatrix.setUpData(camera.getRotatedZ()), vecStore.changeToArray(), vecStore.count(), camera);
 				
-			//Pixel* triOutlines = FindTriangleOutlines(projectedVectors, vecStore.count(), engineDisplay.getMaxX(), engineDisplay.getMaxY(), engineDisplay.getRangeX(), engineDisplay.getRangeY(), engineDisplay.getWidth(), engineDisplay.getHeight());
-			
+
 			//Because of prievous code in rotate and project, if one vector has been projected all connecting vectors would have also been projected
 			//each 3 consecutive vectors in projectedVectors are connected, so can loop through every 3 vectors and check if it has been projected.
 			//if it has, can pass that vector and each connecting one into a draw function

@@ -157,7 +157,6 @@
     <ClInclude Include="LinkFile.cuh" />
     <ClInclude Include="Display.h" />
     <ClInclude Include="List.h" />
-    <ClInclude Include="Pixel.h" />
     <ClInclude Include="RotationMatrix.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>

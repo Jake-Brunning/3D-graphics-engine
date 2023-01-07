@@ -11,6 +11,70 @@
 __device__ double fovX; //The angle of the camera to the rightmost view
 __device__ double fovY; //The angle of the camera to the upmost view
 
+
+//Its not possible to have dynamic allocation of device variables
+//which means the cross products can't be part of a class, so intsead im using 3 arrays
+
+//(cross product values are used for clipping)
+__device__ double crossProductXs[4]; //cross product x values for view frustrum planes. 0: above Plane, 1: right Plane, 2: below Plane, 3: left Plane
+__device__ double crossProductYs[4]; //cross product y values for view frustrum planes. 0: above Plane, 1: right Plane, 2: below Plane, 3: left Plane
+__device__ double crossProductZs[4]; //cross product z values for view frustrum planes. 0: above Plane, 1: right Plane, 2: below Plane, 3: left Plane
+
+__device__ void calculateCrossProduct(Vector vec1, Vector vec2, int i) { //function returns the cross product of the 2 vectors. It Assumes both vectors start from (0,0,0)
+	double x = (vec1.y * vec2.z) - (vec1.z * vec2.y);
+	double y = (vec1.z * vec2.x) - (vec1.x * vec2.z);
+	double z = (vec1.x * vec2.y) - (vec1.y * vec2.x);
+
+	crossProductXs[i] = x;
+	crossProductYs[i] = y;
+	crossProductZs[i] = z;
+}
+
+__global__ void parallelCalculateCrossProductValues(const double maxX, const double maxY, const double rangeX, const double rangeY, const double zFarDist) {
+	int i = threadIdx.x;
+
+	//calculate cross product values
+	switch (i) {
+	case 0:
+		calculateCrossProduct(Vector(maxX, maxY, zFarDist), Vector(maxX - rangeX, maxY, zFarDist), i); //above plane
+		break;
+	case 1:
+		calculateCrossProduct(Vector(maxX, maxY, zFarDist), Vector(maxX, maxY - rangeY, zFarDist), i); //right plane
+		break;
+	case 2:
+		calculateCrossProduct(Vector(maxX - rangeX, maxY - rangeY, zFarDist), Vector(maxX, maxY - rangeY, zFarDist), i); //below plane
+		break;
+	case 3:
+		calculateCrossProduct(Vector(maxX - rangeX, maxY, zFarDist), Vector(maxX - rangeX, maxY - rangeY, zFarDist), i); //left plane
+		break;
+	default:
+		break;
+	}
+}
+__host__ void setUpCalculationForCrossProduct(const double maxX, const double maxY, const double rangeX, const double rangeY, const double zFarDist) {
+	const int numberOfThreads = 4; //always going to have 4 threads running as theres always 4 planes which need to be calculated
+	const int numberOfBlocks = 1; //always going to be 4 threads runnning, so only need one block
+
+	parallelCalculateCrossProductValues << <numberOfBlocks, numberOfThreads >> > (maxX, maxY, rangeX, rangeY, zFarDist);
+}
+
+__device__ double calculateDotProduct(Vector vec, int i) { //function calculates the dot product of a vector and a frustrum plane, i defines which plane.
+	return (vec.x * crossProductXs[i]) + (vec.y * crossProductYs[i]) + (vec.z * crossProductZs[i]);
+}
+
+__device__ bool CheckIfInViewFrustrum(Vector vec1, double zNearClipDist, double zFarClipDist) {
+	//if behind or infront of the far clip plane, return false
+	if (vec1.z < zNearClipDist) {
+		return false;
+	}
+	if (vec1.z > zFarClipDist) {
+		return false;
+	}
+
+	//perform dot product to check what side the vector is on for each plane
+	
+}
+
 //moving the camera
 __global__ void MoveVectors(Vector* d_vectors, double changeInXYZ, char axis, int N) 
 {
@@ -53,6 +117,8 @@ __host__ Vector* setUpMoveVectors(double changeInXYZ, char axis, Vector* vectors
 __global__ void calculateFovValues(double fovInput, double yPixels, double xPixels) {
 	fovX = fovInput;
 	fovY = fovInput;
+
+	//fovY = atan(1 / zDistFromCamera)
 }
 
 __host__ void setUpFovValuesForGPU(double fovInput, double yPixels, double xPixels) {
@@ -175,6 +241,9 @@ __host__ Vector* setUpRotationAndProjection(double h_xRotation[9], double h_yRot
 	const dim3 threads(h_width, h_height); //2d thread setup
 	const dim3 blocks(1, 1); //2d block setup. only need to use one as rotation matrix multiplication would only be as big as 9 threads (width * height)
 
+	const int numberOfThreads = 512; //arbituary value for number of threads, tbh this could be increased to 64,128 or 512 for faster processing
+	const int numberOfBlocks = (N / numberOfThreads) + 1; //if more threads needed than can fit in a block, add another block
+
 
 	//multiply the first 2 matrixes
 	double* d_XYoutput; //the x and y matrix multiplied together
@@ -199,15 +268,18 @@ __host__ Vector* setUpRotationAndProjection(double h_xRotation[9], double h_yRot
 
 	matrixMultiply<double> << <blocks, threads >> > (d_XYoutput, d_zRotation, d_XYZoutput, h_width, h_height);
 
+
 	//testing to see if rotation matrix is the correct value
 	double* h_XYZoutput = new double[h_width * h_height];
 	cudaMemcpy(h_XYZoutput, d_XYZoutput, sizeOfMatrix, cudaMemcpyDeviceToHost);
 	//end of test
 
+
 	cudaFree(d_xRotation);
 	cudaFree(d_yRotation);
 	cudaFree(d_zRotation);
 	cudaFree(d_XYoutput);
+
 
 	//set up rotate vectors
 	Vector* d_vectors;
@@ -215,140 +287,13 @@ __host__ Vector* setUpRotationAndProjection(double h_xRotation[9], double h_yRot
 
 	cudaMemcpy(d_vectors, h_vectors, sizeof(Vector) * N, cudaMemcpyHostToDevice);
 
-	const int numberOfThreads = 512; //arbituary value for number of threads, tbh this could be increased to 64,128 or 512 for faster processing
-	const int numberOfBlocks = (N / numberOfThreads) + 1; //if more threads needed than can fit in a block, add another block
-
 	rotateAndProject << <numberOfBlocks, numberOfThreads >> > (d_vectors, d_XYZoutput, h_width, N, camera);
 
-	Vector* h_output = new Vector[N]; //the output of rotate and projecet (all vectors, except vectors in view of frustrum will be projected)
+	Vector* h_output = new Vector[N]; //the output of rotate and projecet
 	cudaMemcpy(h_output, d_vectors, sizeof(Vector) * N, cudaMemcpyDeviceToHost);
 
 	cudaFree(d_vectors);
 	cudaFree(d_XYZoutput);
 
 	return h_output;
-}
-
-__global__ void findTriangleOutlines(Vector* d_vectors, Pixel* d_pixel, const int N, const double maxX, const double maxY, const double rangeX, const double rangeY, const double width, const double height) {
-	int i = (blockDim.x * blockIdx.x) + threadIdx.x;
-
-	if (i < N && d_vectors[i].getProjectVector() == true) {
-
-		//get a vector + its connecting vector
-		Vector vec1 = d_vectors[i];
-		Vector vec2 = d_vectors[i + 1];
-		if (i % 3 == 2) {
-			vec2 = d_vectors[i - 3]; 
-		}
-
-		//the following 2 lines of code is already in the display class
-		//although I would love to just call that function, its not saved on the gpu
-		//making memory space for display is not a good idea; as it has SDL classes and functions
-		vec1.x = ((vec1.x + maxX) / rangeX) * width;
-		vec1.y = ((vec1.y + maxY) / rangeY) * height;
-		vec2.x = ((vec2.x + maxX) / rangeX) * width;
-		vec2.y = ((vec2.y + maxY) / rangeY) * height;
-
-		//find line equation
-		double m = (vec2.y - vec1.y) / (vec2.x - vec1.x);
-		double c = vec1.y - (m * vec1.x);
-
-		d_pixel[i].setValues(1, c, vec1.getB(), m, true);
-
-		//find pixels which are outlined
-		int x;
-		double y;
-		double pastY;
-		int xBound;
-		int yBound;
-		double z;
-		if (vec1.x < vec2.x) {
-			int x = (int)vec1.x;
-			double y = vec1.y;
-			double pastY = vec1.y;
-			xBound = (int)vec2.x;
-			yBound = (int)vec2.y;
-			z = vec1.z;
-		}
-		else {
-			int x = (int)vec2.x;
-			double y = vec2.y;
-			double pastY = vec2.y;
-			xBound = (int)vec1.x;
-			yBound = (int)vec1.y;
-			z = vec2.z;
-		}
-		
-
-		//PROBLEM: 
-
-		while ((int)x != xBound || (int)y != yBound) {
-			break; //afdfdffkjfdjasdfjl;kfdjlk;adjflkadfkjjlkfdsjklafsedkjlfsddsaf;faffksdjkfdsfd;kfkjasfkafsdkasfdl;j
-			x++;
-			y = (m * x) + c;
-			round(y);
-			d_pixel[(int)y * (int)height + x].setValues(vec1.getR(), vec1.getG(), vec1.getB(), z, true);
-			if (modulus<double>(pastY - y) > 1) {
-				for (int j = pastY; j < (int)y; j++) {
-					//outlines.add[x - 1, j];
-					d_pixel[(int)j * (int)height + (x - 1)].setValues(vec1.getR(), vec1.getG(), vec1.getB(), z, true);
-				}
-			}
-		}
-		__syncthreads();
-	}
-}
-
-//rasterisation, to be called from cpu file
-__host__ Pixel* FindTriangleOutlines(Vector* h_vectors, const int N, const double maxX, const double maxY, const double rangeX, const double rangeY, const double width, const double height) {
-	//h_vectors comprises of both projected and unprojected vectors
-	//every 3 consecutive vectors in h_vectors is a triangle
-
-	/**
-		The amount of triangle outlines will vary each call to FindTriangleOutlines
-		So it would make sense to use a dynamic data structure to store the triangle outlines
-		After some research making a dynamic data structure for the GPU which can then transfer it's data across to the CPU could be a project itself
-
-		To get around this problem, we will allocate memory space for each pixel on screen as an array
-		When an outline is found, its saved into the array. If 50, 200 = red then array position [50,200] = red
-		This 2d array of sorts will be represented in vector notation to avoid the errors which come with 2d arrays on the GPU
-
-	*/
-
-	Vector* d_vectors; //vectors on the device
- 	Pixel* d_pixel; //stores data on every single pixel
-	//array goes rightwards first, so across the width then one down
-
-	const size_t sizeofVectors = sizeof(Vector) * N;
-	const size_t sizeOfPixels = sizeof(Pixel) * width * height; 
-	
-	const int numberOfThreads = 128;
-	const int numberOfBlocks = (N / numberOfThreads) + 1;
-
-	cudaError error;
-
-	error = cudaMalloc(&d_vectors, sizeofVectors);
-	error = cudaMalloc(&d_pixel, sizeOfPixels);
-
-	error = cudaMemcpy(d_vectors, h_vectors, sizeofVectors, cudaMemcpyHostToDevice);
-
-	//findTriangleOutlines << <numberOfBlocks, numberOfThreads >> > (d_vectors, d_pixel, N, maxX, maxY, rangeX, rangeY, width, height);
-
-	Pixel* h_pixel = new Pixel[height * width];
-	error = cudaMemcpy(h_pixel, d_pixel, sizeOfPixels, cudaMemcpyDeviceToHost);
-
-	int amountFilledIn = 0;
-
-	for (int i = 0; i < width * height; i++) {
-		if (h_pixel[i].isAnOutline() == true) {
-			amountFilledIn++;
-		}
-		
-	}
-
-	cudaFree(d_vectors);
-	cudaFree(d_pixel);
-
-	return h_pixel;
-
 }

@@ -51,6 +51,7 @@ protected:
 	const int width; //width of the display in pixels
 };
 
+
 class EngineDisplay : public BaseDisplay {
 public:
 
@@ -90,6 +91,7 @@ private:
 	const double rangeX = 2; //max range for normalised plane (x)
 	const double rangeY = 2; //max range for normalised plane (y)
 };
+
 
 class UIDisplay : public BaseDisplay {
 public:

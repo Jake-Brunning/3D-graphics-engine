@@ -8,8 +8,8 @@ public:
 	double y = 0;
 	double z = 0;
 
-	//varying constructors which coudl be used
-	Vector(double x, double y, double z) {
+	//constructors
+	__host__ __device__ Vector(double x, double y, double z) {
 		this->x = x;
 		this->y = y;
 		this->z = z;
@@ -37,6 +37,9 @@ public:
 			x = nearClipDistX;
 			y = nearClipDistY;
 			return;
+		}
+		else if (z < 0) {
+			z = z * -1;
 		}
 
 		x = ((nearClipDistZ / z) * x) + nearClipDistX;
