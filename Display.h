@@ -68,7 +68,7 @@ public:
 		SDL_SetRenderDrawColor(renderer, r, g, b, 0);
 		SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 	}
-
+	
 	double getMaxX() {
 		return maxX;
 	}
@@ -131,7 +131,7 @@ private:
 			rect->w = w;
 
 			color = { r, g, b };
-
+			
 			font = TTF_OpenFont(fontFilePath.c_str(), size); //create font
 			textStore = TTF_RenderText_Solid(font, text.c_str(), color); //use font to chagne string into displayable text
 			textToDisplay = SDL_CreateTextureFromSurface(*renderer, textStore); //convert text to a texture

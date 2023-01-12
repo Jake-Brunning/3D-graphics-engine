@@ -19,29 +19,22 @@ RotationMatrix initiliseYRotation();
 RotationMatrix initiliseZRotation();
 
 //Variable declarations
-EngineDisplay engineDisplay(1080, 1920, "3D engine");
-UIDisplay uiDisplay(540, 960, "UI display");
+EngineDisplay engineDisplay(540, 960, "3D engine");
+UIDisplay uiDisplay(700, 960, "UI display");
 
 
 int main(int argc, char* args[]) {
 
 	List<Vector> vecStore; //The store of vectors. Each 3 consecutive vectors form their own triangle.
 	vecStore = loadDefaultShape(vecStore); //load the default shape
-	//addTriangleToVectorStore(vecStore, new Vector(2, 3, 5), new Vector(1, 2, 3), new Vector(3, 2, 5));
+	addTriangleToVectorStore(vecStore, new Vector(2, 3, 5), new Vector(1, 2, 3), new Vector(3, 2, 5));
 	
 	for (int i = 0; i < 1000; i++) {
 		addTriangleToVectorStore(vecStore, new Vector(i, i, i), new Vector(i + 1, i - 1, i), new Vector(i + 2, i, i));
 	}
-
-	//adding a cube onto the screen
-	int startOfcube = 0; //the start of the cube coordinates
-	//addTriangleToVectorStore(vecStore, new Vector(startOfcube, startOfcube, startOfcube), new Vector(startOfcube, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube)); //0,0,0 - 0,0,1 - 1,0,0
-	//addTriangleToVectorStore(vecStore, new Vector(startOfcube, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube), new Vector(startOfcube + 1, startOfcube, startOfcube + 1)); //0,0,0 - 1,0,0 - 1,0,1
-	//addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube, startOfcube), new Vector(startOfcube + 1, startOfcube + 1, startOfcube)); //1,0,1, - 1,0,0 - 1,1,0
-	//addTriangleToVectorStore(vecStore, new Vector(startOfcube + 1, startOfcube, startOfcube + 1), new Vector(startOfcube + 1, startOfcube + 1, startOfcube + 1), new Vector(startOfcube + 1, startOfcube  + 1, startOfcube)); //1,0,1 - 1,1,1 - 1,1,0
 	
 	//initilise camera
-	Camera camera(0, 0, 0.1, (3.141592654 / 180) * 120, 50);
+	Camera camera(0, 0, 0.3, (3.141592654 / 180) * 90, 50);
 
 	//Load default color onto the screen
 	engineDisplay.clearScreen();
@@ -148,7 +141,7 @@ int main(int argc, char* args[]) {
 			Vector* projectedVectors = setUpRotationAndProjection(xMatrix.setUpData(camera.getRotatedX()), yMatrix.setUpData(camera.getRotatedY()), zMatrix.setUpData(camera.getRotatedZ()), vecStore.changeToArray(), vecStore.count(), camera);
 				
 
-			//Because of prievous code in rotate and project, if one vector has been projected all connecting vectors would have also been projected
+			//Because of preivous code in rotate and project, if one vector has been projected all connecting vectors would have also been projected
 			//each 3 consecutive vectors in projectedVectors are connected, so can loop through every 3 vectors and check if it has been projected.
 			//if it has, can pass that vector and each connecting one into a draw function
 			engineDisplay.clearScreen(); //prepare the screen for drawing by getting rid of all current drawing on the sreen
@@ -248,4 +241,8 @@ void initiliseUIWindow() {
 	uiDisplay.addTextbox(latoFilePath, "0", "amountOfVectorsOnScreen", size1, startX + WidthOfText + 10, startY + heightOfText, WidthOfText / 7, heightOfText, r, g, b); //Displays the number of vectors on screen
 	uiDisplay.addTextbox(latoFilePath, "Amount Of Vectors In Plane:", "amountOfVectorsInPlaneText", size1, startX, startY + heightOfText * 2, WidthOfText, heightOfText, r, g, b); //displays the text before the number of vectors in the plane
 	uiDisplay.addTextbox(latoFilePath, "0", "amountOfVectorsInPlane", size1, startX + WidthOfText + 10, startY + heightOfText * 2, WidthOfText / 7, heightOfText, r, g, b); //Displays how many vectors are in the plane
+	uiDisplay.addTextbox(latoFilePath, "RT to rotate Z axis, QE to rotate Y axis", "infoQERT", size1 - 2, startX, startY + heightOfText * 3, WidthOfText  * 1.3, heightOfText - 10, r, g, b); //information about the display
+	uiDisplay.addTextbox(latoFilePath, "ZX to rotate X axis", "infoZX", size1 - 2, startX, startY + heightOfText * 4, WidthOfText - 100, heightOfText - 10, r, g, b); //information about x axis
+	uiDisplay.addTextbox(latoFilePath, "WS for moving the Z axis, AD for moving X axis", "infoWSAD", size1 - 2, startX, startY + heightOfText * 5, WidthOfText * 1.5, heightOfText - 10, r, g, b); //info about moving bar UP DOWN 
+	uiDisplay.addTextbox(latoFilePath, "UP DOWN arrow keys to move Y axis", "infoUPDOWN", size1 - 2, startX, startY  + heightOfText * 6, WidthOfText, heightOfText - 10, r, g, b); //info about moving up down
 }

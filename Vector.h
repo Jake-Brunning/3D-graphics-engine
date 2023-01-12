@@ -33,15 +33,14 @@ public:
 	//GPU project function
 	__device__ void projectVector(double nearClipDistX, double nearClipDistY, double nearClipDistZ) {
 		projected = true;
-		if (z == 0) {
+		if (z == 0) { //to prevent divide by 0 errors
 			x = nearClipDistX;
 			y = nearClipDistY;
 			return;
 		}
-		else if (z < 0) {
-			z = z * -1;
-		}
 
+
+		//projection equation
 		x = ((nearClipDistZ / z) * x) + nearClipDistX;
 		y = ((nearClipDistZ / z) * y) + nearClipDistY;
 	}

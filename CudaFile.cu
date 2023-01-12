@@ -6,51 +6,51 @@
 #include "List.h"
 #include "LinkFile.cuh"
 #include "Camera.h"
-#include "Pixel.h"
+
+//NOTE : __device__ means its a function / variable stored on the GPU
+//     : __global__ means a function run in parrellel on the GPU
+//     : __host__ means a function run on the CPU
 
 __device__ double fovX; //The angle of the camera to the rightmost view
 __device__ double fovY; //The angle of the camera to the upmost view
-
-
-//Its not possible to have dynamic allocation of device variables
-//which means the cross products can't be part of a class, so intsead im using 3 arrays
 
 //(cross product values are used for clipping)
 __device__ double crossProductXs[4]; //cross product x values for view frustrum planes. 0: above Plane, 1: right Plane, 2: below Plane, 3: left Plane
 __device__ double crossProductYs[4]; //cross product y values for view frustrum planes. 0: above Plane, 1: right Plane, 2: below Plane, 3: left Plane
 __device__ double crossProductZs[4]; //cross product z values for view frustrum planes. 0: above Plane, 1: right Plane, 2: below Plane, 3: left Plane
 
+
+//sets up clipping values
 __device__ void calculateCrossProduct(Vector vec1, Vector vec2, int i) { //function returns the cross product of the 2 vectors. It Assumes both vectors start from (0,0,0)
-	double x = (vec1.y * vec2.z) - (vec1.z * vec2.y);
-	double y = (vec1.z * vec2.x) - (vec1.x * vec2.z);
-	double z = (vec1.x * vec2.y) - (vec1.y * vec2.x);
+	crossProductXs[i] = (vec1.y * vec2.z) - (vec1.z * vec2.y);
+	crossProductYs[i] = (vec1.z * vec2.x) - (vec1.x * vec2.z);
+	crossProductZs[i] = (vec1.x * vec2.y) - (vec1.y * vec2.x);
+} 
 
-	crossProductXs[i] = x;
-	crossProductYs[i] = y;
-	crossProductZs[i] = z;
-}
-
-__global__ void parallelCalculateCrossProductValues(const double maxX, const double maxY, const double rangeX, const double rangeY, const double zFarDist) {
+//sets up clipping values (1)
+__global__ void parallelCalculateCrossProductValues(const double maxX, const double maxY, const double rangeX, const double rangeY,  double zFarDist) {
 	int i = threadIdx.x;
-
+	//zFarDist = 1;
 	//calculate cross product values
 	switch (i) {
 	case 0:
-		calculateCrossProduct(Vector(maxX, maxY, zFarDist), Vector(maxX - rangeX, maxY, zFarDist), i); //above plane
+		calculateCrossProduct(Vector(maxX - rangeX, maxY, zFarDist), Vector(maxX, maxY, zFarDist), i); //above plane
 		break;
 	case 1:
 		calculateCrossProduct(Vector(maxX, maxY, zFarDist), Vector(maxX, maxY - rangeY, zFarDist), i); //right plane
 		break;
 	case 2:
-		calculateCrossProduct(Vector(maxX - rangeX, maxY - rangeY, zFarDist), Vector(maxX, maxY - rangeY, zFarDist), i); //below plane
+		calculateCrossProduct(Vector(maxX, maxY - rangeY, zFarDist), Vector(maxX - rangeX, maxY - rangeY, zFarDist), i); //below plane
 		break;
 	case 3:
-		calculateCrossProduct(Vector(maxX - rangeX, maxY, zFarDist), Vector(maxX - rangeX, maxY - rangeY, zFarDist), i); //left plane
+		calculateCrossProduct(Vector(maxX - rangeX, maxY - rangeY, zFarDist), Vector(maxX - rangeX, maxY, zFarDist), i); //left plane
 		break;
 	default:
 		break;
 	}
-}
+} 
+
+//sets up clipping values (1)
 __host__ void setUpCalculationForCrossProduct(const double maxX, const double maxY, const double rangeX, const double rangeY, const double zFarDist) {
 	const int numberOfThreads = 4; //always going to have 4 threads running as theres always 4 planes which need to be calculated
 	const int numberOfBlocks = 1; //always going to be 4 threads runnning, so only need one block
@@ -58,10 +58,12 @@ __host__ void setUpCalculationForCrossProduct(const double maxX, const double ma
 	parallelCalculateCrossProductValues << <numberOfBlocks, numberOfThreads >> > (maxX, maxY, rangeX, rangeY, zFarDist);
 }
 
+//used for clipping; dot product is a mathematical function which sees how far a vector is away from another vector (1)
 __device__ double calculateDotProduct(Vector vec, int i) { //function calculates the dot product of a vector and a frustrum plane, i defines which plane.
 	return (vec.x * crossProductXs[i]) + (vec.y * crossProductYs[i]) + (vec.z * crossProductZs[i]);
 }
 
+//clipping with cross product and dot product (1)
 __device__ bool CheckIfInViewFrustrum(Vector vec1, double zNearClipDist, double zFarClipDist) {
 	//if behind or infront of the far clip plane, return false
 	if (vec1.z < zNearClipDist) {
@@ -72,7 +74,42 @@ __device__ bool CheckIfInViewFrustrum(Vector vec1, double zNearClipDist, double 
 	}
 
 	//perform dot product to check what side the vector is on for each plane
+	for (int i = 0; i < 2; i++) {
+		if (calculateDotProduct(vec1, i) < 0) {
+			return false;
+		}
+	}
+
+	for (int i = 2; i < 4; i++) {
+		if (calculateDotProduct(vec1, i) > 0) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+//clipping by projecting vectors and seeing if there  (2)
+__device__ bool dumbClipping(Vector vec1, double zNearClipDist, double zFarClipDist) {
+	if (vec1.z < zNearClipDist) {
+		return false;
+	}
+
+	if (vec1.z > zFarClipDist) {
+		return false;
+	}
+
+	vec1.projectVector(0, 0, zNearClipDist);
 	
+	if (vec1.x > 1 || vec1.x < -1) {
+		return false;
+	}
+
+	if (vec1.y > 1 || vec1.y < -1) {
+		return false;
+	}
+
+	return true;
 }
 
 //moving the camera
@@ -96,6 +133,7 @@ __global__ void MoveVectors(Vector* d_vectors, double changeInXYZ, char axis, in
 	}
 }
 
+//allocating memory and etc for moving the camera
 __host__ Vector* setUpMoveVectors(double changeInXYZ, char axis, Vector* vectors, int N) {
 
 	Vector* d_vectors;
@@ -114,6 +152,7 @@ __host__ Vector* setUpMoveVectors(double changeInXYZ, char axis, Vector* vectors
 	return h_vectors;
 }
 
+//clipping using angle formed with vector and fov (3)
 __global__ void calculateFovValues(double fovInput, double yPixels, double xPixels) {
 	fovX = fovInput;
 	fovY = fovInput;
@@ -121,6 +160,7 @@ __global__ void calculateFovValues(double fovInput, double yPixels, double xPixe
 	//fovY = atan(1 / zDistFromCamera)
 }
 
+//setting up to calculate fov values on the gpu (3)
 __host__ void setUpFovValuesForGPU(double fovInput, double yPixels, double xPixels) {
 	calculateFovValues << <1, 1 >> > (fovInput, yPixels, xPixels);
 }
@@ -141,6 +181,7 @@ __global__ void matrixMultiply(type* matrix1, type* matrix2, type* returnMatrix,
 	}
 }
 
+//modulus function makes a value positive
 template<typename type>
 __device__ type modulus(type input) { //makes a negative positive
 	if (input < 0) {
@@ -149,6 +190,7 @@ __device__ type modulus(type input) { //makes a negative positive
 	return input;
 }
 
+//performing clipping using angles (3)
 __device__ bool checkIfInViewFrustrum(Vector vec, double zDistFromNearClip, double zFarClipDist) {
 	
 	if (zDistFromNearClip > vec.z) { //check if behind the near clip plane
@@ -171,6 +213,7 @@ __device__ bool checkIfInViewFrustrum(Vector vec, double zDistFromNearClip, doub
 
 	return true;
 }
+
 
 __global__ void rotateAndProject(Vector* d_vectors, double* this_rotationMatrix, const int width, const int N, Camera camera) {
 	int i = (blockDim.x * blockIdx.x) + threadIdx.x;
@@ -206,7 +249,7 @@ __global__ void rotateAndProject(Vector* d_vectors, double* this_rotationMatrix,
 		cudaFree(d_rotated);
 
 		//project vector if in view frustrum
-		if (checkIfInViewFrustrum(d_vectors[i], camera.getDistanceZ(), camera.getFarClipDistanceZ())) {
+		if (dumbClipping(d_vectors[i], camera.getDistanceZ(), camera.getFarClipDistanceZ())) {
 			d_vectors[i].projectVector(camera.getDistanceX(), camera.getDistanceY(), camera.getDistanceZ());
 		}
 
