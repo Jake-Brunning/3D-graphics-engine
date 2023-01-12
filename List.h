@@ -9,7 +9,7 @@ class List //List class to be used on the CPU
 public:
 
 	List(int startLength = 0) : NumOfElements(startLength) {
-		data = new type[NumOfElements];
+		data = new type[NumOfElements]; //allocate memory space for the starting space of the list
 	}
 
 	void add(type data) {

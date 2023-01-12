@@ -156,6 +156,7 @@ int main(int argc, char* args[]) {
 			engineDisplay.draw(); //draw the current scene
 
 			frameTime = SDL_GetTicks() - frameTime;
+			//update the UI display with new information
 			uiDisplay.changeTextBasedOnName(std::to_string(frameTime), "frameTime");
 			uiDisplay.changeTextBasedOnName(std::to_string(vecStore.count()), "amountOfVectorsInPlane");
 			uiDisplay.changeTextBasedOnName(std::to_string(howManyVectorsOnScreen), "amountOfVectorsOnScreen");
@@ -190,13 +191,14 @@ List<Vector> loadDefaultShape(List<Vector> vecstore) {
 	return vecstore;
 }
 
+//vec store is passed by ref so dont have to return the whole thing
 void addTriangleToVectorStore(List<Vector> &vecStore, Vector* vec1, Vector* vec2, Vector* vec3) {
 	vecStore.add(*vec1);
 	vecStore.add(*vec2);
 	vecStore.add(*vec3);
 }
 
-
+//sets up values for the x rotation matrix
 RotationMatrix initiliseXRotation() {
 	double xRotationValues[] = { 1,0,0,0,1,1,0,-1,1 };
 	int xRotationSinIndexes[] = { 5,7 };
@@ -205,6 +207,7 @@ RotationMatrix initiliseXRotation() {
 
 }
 
+//setus up values for y rotation matrix
 RotationMatrix initiliseYRotation() {
 	double yRotationValues[] = { 1,0,-1,0,1,0,1,0,1 };
 	int yRotationSinIndexes[] = { 2,6 };
@@ -212,6 +215,7 @@ RotationMatrix initiliseYRotation() {
 	return RotationMatrix(yRotationValues, yRotationSinIndexes, yRotationCosIndexes);
 }
 
+//sets up values for z rotation matrix
 RotationMatrix initiliseZRotation() {
 	double zRotationValues[] = { 1,1,0,-1,1,0,0,0,1 };
 	int zRotationSinIndexes[] = { 1,3 };
@@ -221,7 +225,7 @@ RotationMatrix initiliseZRotation() {
 }
 
 void initiliseUIWindow() {
-	const std::string latoFilePath = "Lato-black.ttf";
+	const std::string latoFilePath = "Lato-black.ttf"; //font files are saved in the solution
 	const Uint8 r = 255;
 	const Uint8 g = 255;
 	const Uint8 b = 255;

@@ -26,12 +26,14 @@ public:
 		SDL_Quit();
 	}
 
+	//clears the current screen and renderer for new drawing
 	void clearScreen(int r = 0, int g = 0, int b = 0) {
 		SDL_SetRenderDrawColor(renderer, r, g, b, 0);
 		SDL_RenderClear(renderer);
 		SDL_RenderPresent(renderer);
 	}
 
+	//draws whats currently saved on the renderer
 	void draw() {
 		SDL_RenderPresent(renderer);
 	}
@@ -57,11 +59,13 @@ public:
 
 	using BaseDisplay::BaseDisplay;
 
+	//converts the vector coordinates into pixel locations which SDL can use to draw
 	void ConvertToPixelCoordinates(double& x, double& y) {
 		x = ((x + maxX) / rangeX) * width;
 		y = ((y + maxY) / rangeY) * height;
 	}
 
+	//puts a line into the renderer
 	void renderLine(double x1, double x2, double y1, double y2, int r = 0, int g = 255, int b = 0) {
 		ConvertToPixelCoordinates(x1, y1);
 		ConvertToPixelCoordinates(x2, y2);
@@ -95,9 +99,10 @@ private:
 
 class UIDisplay : public BaseDisplay {
 public:
+
+	//this constructor is called after the constructor in base display
 	UIDisplay(int height_, int width_, std::string title) : BaseDisplay(height_, width_, title) {
 		TTF_Init(); // need to initilse the text to texture before using it, so have to make a new construcutor
-		//the base constructor is still called
 	}
 
 	void renderTextBoxes() {
@@ -106,7 +111,7 @@ public:
 		}
 	}
 
-	void changeTextBasedOnName(const std::string newText, const std::string name) { //changes and updates the texture of the target text box
+	void changeTextBasedOnName(const std::string newText, const std::string name) { //changes and updates the texture of the target text box based on name
 		for (int i = 0; i < textBoxes.count(); i++) {
 			if (textBoxes.getIndex(i)->getName() == name) {
 				textBoxes.getIndex(i)->changeText(&renderer, newText);
